@@ -220,9 +220,7 @@ export default function DashboardView() {
                     </div>
 
                     {/* Title & Description */}
-                    <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r transition-all duration-300" style={{
-                      backgroundImage: `linear-gradient(135deg, white, white)`,
-                    }}>
+                    <h3 className="text-2xl font-bold text-white mb-3 transition-all duration-300">
                       {tool.name}
                     </h3>
 
