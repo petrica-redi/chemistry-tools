@@ -33,25 +33,24 @@ export default function SliderControl({
     if (!inputRef.current) return;
     const pct = ((value - min) / (max - min)) * 100;
     inputRef.current.style.setProperty('--slider-pct', `${pct}%`);
-    inputRef.current.style.background = `linear-gradient(to right, ${color} 0%, ${color} ${pct}%, #2a3555 ${pct}%, #2a3555 100%)`;
+    inputRef.current.style.background = `linear-gradient(to right, ${color} 0%, ${color} ${pct}%, rgba(255, 255, 255, 0.06) ${pct}%, rgba(255, 255, 255, 0.06) 100%)`;
   }, [value, min, max, color]);
 
   return (
     <div className="mb-3.5">
       <div className="flex justify-between items-center mb-2">
-        <label className="text-[11px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+        <label className="text-[11px] font-500" style={{ color: 'var(--color-text-secondary)' }}>
           {label}
         </label>
         <span
-          className="font-mono text-[11px] font-bold px-2 py-1 rounded-[8px] transition-all duration-300"
+          className="font-mono text-[11px] font-500 px-2 py-1 rounded-[6px]"
           style={{
-            color: '#fff',
-            background: `linear-gradient(135deg, ${color} 0%, ${color}cc 100%)`,
-            border: `1px solid ${color}`,
-            boxShadow: `0 0 8px ${color}40`,
+            color: 'var(--color-text-primary)',
+            background: `${color}12`,
+            border: `1px solid ${color}22`,
           }}
         >
-          {displayValue}{unit && <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 400 }}>{unit}</span>}
+          {displayValue}{unit && <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>{unit}</span>}
         </span>
       </div>
       <input
@@ -62,6 +61,13 @@ export default function SliderControl({
         step={step}
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
+        style={{
+          borderRadius: '4px',
+          height: '4px',
+          outline: 'none',
+          WebkitAppearance: 'none',
+          appearance: 'none',
+        } as React.CSSProperties & { WebkitAppearance: string }}
       />
     </div>
   );

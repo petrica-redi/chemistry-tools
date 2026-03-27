@@ -14,9 +14,9 @@ export default function ToggleSwitch({
   color = 'var(--color-brand)',
 }: ToggleSwitchProps) {
   return (
-    <label className="flex items-center justify-between py-2 cursor-pointer group gap-3 transition-colors duration-300 hover:text-[var(--color-text-primary)]">
+    <label className="flex items-center justify-between py-2 cursor-pointer gap-3 transition-colors duration-150 hover:text-[var(--color-text-primary)]">
       <span
-        className="text-[11.5px] select-none transition-colors duration-300"
+        className="text-[11px] font-500 select-none transition-colors duration-150"
         style={{ color: checked ? 'var(--color-text-primary)' : 'var(--color-text-secondary)' }}
       >
         {label}
@@ -25,25 +25,19 @@ export default function ToggleSwitch({
       <div
         role="switch"
         aria-checked={checked}
-        className="relative shrink-0 w-10 h-[22px] rounded-full transition-all duration-300 cubic-bezier(0.34, 1.56, 0.64, 1) cursor-pointer"
+        className="relative shrink-0 w-9 h-5 rounded-full transition-all duration-150 cursor-pointer"
         style={{
-          background: checked
-            ? `linear-gradient(135deg, ${color} 0%, ${color}cc 100%)`
-            : 'linear-gradient(135deg, #2a3555 0%, #1a1f3a 100%)',
-          border: checked
-            ? `1.5px solid ${color}`
-            : '1px solid var(--color-border)',
-          boxShadow: checked ? `0 0 16px ${color}40, 0 0 32px ${color}20` : 'inset 0 0 8px rgba(0, 0, 0, 0.2)',
+          background: checked ? color : 'rgba(255, 255, 255, 0.08)',
+          border: `1px solid ${checked ? color : 'rgba(255, 255, 255, 0.12)'}`,
         }}
         onClick={() => onChange(!checked)}
       >
         <div
-          className="absolute top-[2px] w-[16px] h-[16px] rounded-full transition-all duration-300 cubic-bezier(0.34, 1.56, 0.64, 1)"
+          className="absolute top-0.5 w-4 h-4 rounded-full transition-all duration-150"
           style={{
-            left: '2px',
-            transform: checked ? 'translateX(20px)' : 'translateX(0)',
-            background: checked ? '#fff' : 'rgba(255,255,255,0.4)',
-            boxShadow: checked ? '0 2px 8px rgba(0,0,0,0.3)' : 'none',
+            left: checked ? '16px' : '2px',
+            background: '#fff',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
           }}
         />
       </div>

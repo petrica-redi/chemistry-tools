@@ -63,7 +63,7 @@ export default function SelectControl({
   return (
     <div className="mb-3.5">
       <label
-        className="block text-[11px] font-medium mb-1.5 transition-colors duration-300"
+        className="block text-[11px] font-500 mb-1.5 transition-colors duration-150"
         style={{ color: 'var(--color-text-secondary)' }}
       >
         {label}
@@ -73,7 +73,12 @@ export default function SelectControl({
         onChange={(e) => onChange(e.target.value)}
         style={{
           backgroundColor: 'var(--color-bg-secondary)',
-          borderRadius: '14px',
+          borderRadius: '8px',
+          border: '1px solid rgba(255, 255, 255, 0.06)',
+          color: 'var(--color-text-primary)',
+          padding: '6px 10px',
+          fontSize: '11px',
+          fontWeight: 500,
         }}
       >
         {renderOptions()}
