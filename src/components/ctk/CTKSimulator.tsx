@@ -13,6 +13,7 @@ import TabBar from '@/components/shared/TabBar';
 import Panel from '@/components/shared/Panel';
 import RelatedTools from '@/components/shared/RelatedTools';
 import { CTK_TO_VDW } from '@/lib/connections';
+import { CHART_LIGHT } from '@/lib/chart-theme';
 import {
   Chart,
   LineController,
@@ -117,13 +118,33 @@ export default function CTKSimulator({ initialGasA }: Props = {}) {
       pA2: { type: 'box', xMin: R.switchBackToA, xMax: R.totalTime, backgroundColor: 'rgba(239,68,68,.04)', borderWidth: 0 },
       sw1: {
         type: 'line', xMin: R.switchToB, xMax: R.switchToB,
-        borderColor: '#fbbf24', borderWidth: 2, borderDash: [6, 4],
-        label: { display: true, content: `A→B t=${R.switchToB}s`, position: 'end', color: '#fbbf24', backgroundColor: '#0c1220cc', font: { size: 8, family: 'monospace' }, padding: 2 },
+        borderColor: '#d97706', borderWidth: 2, borderDash: [6, 4],
+        label: {
+          display: true,
+          content: `A→B t=${R.switchToB}s`,
+          position: 'end',
+          color: '#92400e',
+          backgroundColor: CHART_LIGHT.labelBg,
+          borderColor: CHART_LIGHT.tooltipBorder,
+          borderWidth: 1,
+          font: { size: 8, family: 'monospace' },
+          padding: 4,
+        },
       },
       sw2: {
         type: 'line', xMin: R.switchBackToA, xMax: R.switchBackToA,
-        borderColor: '#fbbf24', borderWidth: 2, borderDash: [6, 4],
-        label: { display: true, content: `B→A t=${R.switchBackToA}s`, position: 'end', color: '#fbbf24', backgroundColor: '#0c1220cc', font: { size: 8, family: 'monospace' }, padding: 2 },
+        borderColor: '#d97706', borderWidth: 2, borderDash: [6, 4],
+        label: {
+          display: true,
+          content: `B→A t=${R.switchBackToA}s`,
+          position: 'end',
+          color: '#92400e',
+          backgroundColor: CHART_LIGHT.labelBg,
+          borderColor: CHART_LIGHT.tooltipBorder,
+          borderWidth: 1,
+          font: { size: 8, family: 'monospace' },
+          padding: 4,
+        },
       },
     };
 
@@ -137,13 +158,26 @@ export default function CTKSimulator({ initialGasA }: Props = {}) {
         interaction: { mode: 'nearest', axis: 'x', intersect: false },
         plugins: {
           legend: {
-            display: true, position: 'top',
-            labels: { color: '#94a3b8', font: { family: 'monospace', size: 10 }, usePointStyle: true, pointStyle: 'circle', padding: 10 },
+            display: true,
+            position: 'top',
+            labels: {
+              color: CHART_LIGHT.legendText,
+              font: { family: 'monospace', size: 10 },
+              usePointStyle: true,
+              pointStyle: 'circle',
+              padding: 10,
+            },
           },
           tooltip: {
-            backgroundColor: '#0f1219ee', borderColor: '#334155', borderWidth: 1,
-            titleFont: { family: 'monospace', size: 11 }, bodyFont: { family: 'monospace', size: 10 },
-            titleColor: '#94a3b8', bodyColor: '#e2e8f0', padding: 8, cornerRadius: 6,
+            backgroundColor: CHART_LIGHT.tooltipBg,
+            borderColor: CHART_LIGHT.tooltipBorder,
+            borderWidth: 1,
+            titleFont: { family: 'monospace', size: 11 },
+            bodyFont: { family: 'monospace', size: 10 },
+            titleColor: CHART_LIGHT.tooltipTitle,
+            bodyColor: CHART_LIGHT.tooltipBody,
+            padding: 8,
+            cornerRadius: 8,
             callbacks: {
               title: (items: any[]) => `t = ${items[0]?.parsed?.x?.toFixed(2) ?? ''} s`,
               label: (c: any) => {
@@ -157,20 +191,36 @@ export default function CTKSimulator({ initialGasA }: Props = {}) {
         scales: {
           x: {
             type: 'linear',
-            title: { display: true, text: 'Time (s)', color: '#94a3b8', font: { family: 'monospace', size: 12 } },
-            ticks: { color: '#94a3b8', font: { family: 'monospace', size: 10 }, maxTicksLimit: 15 },
-            grid: { color: '#1e293b' }, border: { color: '#334155' },
-            min: 0, max: R.totalTime,
+            title: {
+              display: true,
+              text: 'Time (s)',
+              color: CHART_LIGHT.axisTitle,
+              font: { family: 'monospace', size: 12 },
+            },
+            ticks: { color: CHART_LIGHT.tick, font: { family: 'monospace', size: 10 }, maxTicksLimit: 15 },
+            grid: { color: CHART_LIGHT.grid },
+            border: { color: CHART_LIGHT.axisLine },
+            min: 0,
+            max: R.totalTime,
           },
           y: {
             type: 'linear',
-            title: { display: true, text: 'Partial pressure (kPa)', color: '#94a3b8', font: { family: 'monospace', size: 12 } },
+            title: {
+              display: true,
+              text: 'Partial pressure (kPa)',
+              color: CHART_LIGHT.axisTitle,
+              font: { family: 'monospace', size: 12 },
+            },
             ticks: {
-              color: '#94a3b8', font: { family: 'monospace', size: 10 }, maxTicksLimit: 10,
+              color: CHART_LIGHT.tick,
+              font: { family: 'monospace', size: 10 },
+              maxTicksLimit: 10,
               callback: (v: any) => v >= 10 ? v.toFixed(0) : v >= 1 ? v.toFixed(1) : v.toFixed(2),
             },
-            grid: { color: '#1e293b' }, border: { color: '#334155' },
-            min: 0, suggestedMax: mY,
+            grid: { color: CHART_LIGHT.grid },
+            border: { color: CHART_LIGHT.axisLine },
+            min: 0,
+            suggestedMax: mY,
           },
         },
       },
@@ -368,7 +418,7 @@ export default function CTKSimulator({ initialGasA }: Props = {}) {
                 </div>
               </>
             )}
-            <div className="relative w-full h-[400px]">
+            <div className="relative w-full h-[400px] rounded-xl border border-[var(--color-border)] bg-white p-3 shadow-sm">
               <canvas ref={chartRef} />
             </div>
             {!simResult && (

@@ -12,6 +12,7 @@ import {
   formatTemp,
 } from './VdWEngine';
 import GasSelector from './GasSelector';
+import { CHART_LIGHT } from '@/lib/chart-theme';
 import Panel from '@/components/shared/Panel';
 import SliderControl from '@/components/shared/SliderControl';
 import ToggleSwitch from '@/components/shared/ToggleSwitch';
@@ -207,22 +208,35 @@ export default function VdW2DPanel({ gas, gasId, onGasChange }: Props) {
     const layout = {
       xaxis: {
         title: '<b>V</b> (L/mol)', range: [s.vMin, s.vMax],
-        gridcolor: 'rgba(100,140,200,.08)', tickfont: { family: 'monospace', size: 11, color: '#64748b' },
-        color: '#94a3b8',
+        gridcolor: CHART_LIGHT.grid,
+        tickfont: { family: 'monospace', size: 11, color: CHART_LIGHT.tick },
+        color: CHART_LIGHT.axisTitle,
       },
       yaxis: {
         title: '<b>P</b> (atm)', range: [s.pMin, s.pMax],
-        gridcolor: 'rgba(100,140,200,.08)', zeroline: true, zerolinecolor: 'rgba(100,140,200,.15)',
-        tickfont: { family: 'monospace', size: 11, color: '#64748b' }, color: '#94a3b8',
+        gridcolor: CHART_LIGHT.grid,
+        zeroline: true,
+        zerolinecolor: CHART_LIGHT.gridMajor,
+        tickfont: { family: 'monospace', size: 11, color: CHART_LIGHT.tick },
+        color: CHART_LIGHT.axisTitle,
       },
       margin: { t: 45, r: 25, b: 55, l: 65 },
       title: {
         text: `<b>${gas.formula} (${gas.name})</b> — P-V Isotherms`,
-        font: { family: 'system-ui', size: 16, color: '#e2e8f0' }, y: 0.97,
+        font: { family: 'system-ui', size: 16, color: CHART_LIGHT.title },
+        y: 0.97,
       },
-      legend: { x: 1, y: 1, xanchor: 'right', bgcolor: 'rgba(6,10,18,.9)', font: { size: 10.5, color: '#94a3b8' } },
-      plot_bgcolor: '#0c1220',
-      paper_bgcolor: '#0c1220',
+      legend: {
+        x: 1,
+        y: 1,
+        xanchor: 'right',
+        bgcolor: CHART_LIGHT.legendBg,
+        bordercolor: CHART_LIGHT.legendBorder,
+        borderwidth: 1,
+        font: { size: 10.5, color: CHART_LIGHT.legendText },
+      },
+      plot_bgcolor: CHART_LIGHT.plotBg,
+      paper_bgcolor: CHART_LIGHT.paperBg,
       hovermode: 'closest',
     };
 
@@ -302,8 +316,11 @@ export default function VdW2DPanel({ gas, gasId, onGasChange }: Props) {
           </button>
         </div>
       </div>
-      <div className="flex-1 p-3 min-w-0">
-        <div ref={plotRef} className="w-full h-full rounded-lg" />
+      <div className="flex-1 p-3 min-w-0 bg-[var(--color-bg-secondary)]">
+        <div
+          ref={plotRef}
+          className="w-full h-full min-h-[320px] rounded-xl border border-[var(--color-border)] bg-white shadow-sm overflow-hidden"
+        />
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import {
   Filler,
 } from 'chart.js';
 import annotationPlugin from 'chartjs-plugin-annotation';
+import { CHART_LIGHT } from '@/lib/chart-theme';
 import type { TitrationResult } from './ChemistryEngine';
 import type { Species } from './AcidBaseDB';
 import type { TitrationState } from './TitrationSimulator';
@@ -116,8 +117,10 @@ export default function TitrationChart({ result, sub, titrant, state }: Props) {
             display: true,
             content: `${e.label} (${e.v} mL)`,
             position: 'start',
-            color: '#f472b6',
-            backgroundColor: 'rgba(6,10,18,0.8)',
+            color: '#9d174d',
+            backgroundColor: CHART_LIGHT.labelBg,
+            borderColor: CHART_LIGHT.tooltipBorder,
+            borderWidth: 1,
             font: { size: 10, family: 'monospace', weight: '600' },
             padding: 3,
           },
@@ -139,8 +142,10 @@ export default function TitrationChart({ result, sub, titrant, state }: Props) {
             display: true,
             content: `½${h.pk.label}=${h.pk.value.toFixed(1)}`,
             position: 'end',
-            color: '#34d399',
-            backgroundColor: 'rgba(6,10,18,0.8)',
+            color: '#047857',
+            backgroundColor: CHART_LIGHT.labelBg,
+            borderColor: CHART_LIGHT.tooltipBorder,
+            borderWidth: 1,
             font: { size: 9, family: 'monospace', weight: '600' },
             padding: 3,
           },
@@ -191,8 +196,10 @@ export default function TitrationChart({ result, sub, titrant, state }: Props) {
             display: true,
             content: `Buffer (${p.label})`,
             position: { x: 'center', y: 'end' },
-            color: '#22d3ee',
-            backgroundColor: 'rgba(6,10,18,0.8)',
+            color: '#0e7490',
+            backgroundColor: CHART_LIGHT.labelBg,
+            borderColor: CHART_LIGHT.tooltipBorder,
+            borderWidth: 1,
             font: { size: 9, family: 'monospace' },
             padding: 2,
           },
@@ -206,12 +213,12 @@ export default function TitrationChart({ result, sub, titrant, state }: Props) {
         title: {
           display: true,
           text: `Volume of ${titrant.formula} (mL)`,
-          color: '#94a3b8',
+          color: CHART_LIGHT.axisTitle,
           font: { size: 12, weight: '500' },
         },
-        ticks: { color: '#64748b', font: { family: 'monospace', size: 10 }, maxTicksLimit: 15 },
-        grid: { color: 'rgba(100,140,200,.06)' },
-        border: { color: 'rgba(100,140,200,.12)' },
+        ticks: { color: CHART_LIGHT.tick, font: { family: 'monospace', size: 10 }, maxTicksLimit: 15 },
+        grid: { color: CHART_LIGHT.grid },
+        border: { color: CHART_LIGHT.axisLine },
         min: 0,
         max: Vmax,
       },
@@ -222,12 +229,12 @@ export default function TitrationChart({ result, sub, titrant, state }: Props) {
         title: {
           display: true,
           text: 'pH',
-          color: '#22d3ee',
+          color: '#0891b2',
           font: { size: 14, weight: '700' },
         },
-        ticks: { color: '#64748b', font: { family: 'monospace', size: 10 }, stepSize: 1 },
-        grid: { color: 'rgba(100,140,200,.06)' },
-        border: { color: 'rgba(100,140,200,.12)' },
+        ticks: { color: CHART_LIGHT.tick, font: { family: 'monospace', size: 10 }, stepSize: 1 },
+        grid: { color: CHART_LIGHT.grid },
+        border: { color: CHART_LIGHT.axisLine },
       },
     };
 
@@ -243,9 +250,9 @@ export default function TitrationChart({ result, sub, titrant, state }: Props) {
           color: '#a78bfa',
           font: { size: 12, weight: '600' },
         },
-        ticks: { color: 'rgba(167,139,250,.5)', font: { family: 'monospace', size: 9 } },
+        ticks: { color: '#7c3aed', font: { family: 'monospace', size: 9 } },
         grid: { display: false },
-        border: { color: 'rgba(167,139,250,.15)' },
+        border: { color: CHART_LIGHT.axisLine },
       };
     }
 
@@ -260,10 +267,10 @@ export default function TitrationChart({ result, sub, titrant, state }: Props) {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(12,19,37,0.95)',
-            titleColor: '#94a3b8',
-            bodyColor: '#e2e8f0',
-            borderColor: 'rgba(100,140,200,.15)',
+            backgroundColor: CHART_LIGHT.tooltipBg,
+            titleColor: CHART_LIGHT.tooltipTitle,
+            bodyColor: CHART_LIGHT.tooltipBody,
+            borderColor: CHART_LIGHT.tooltipBorder,
             borderWidth: 1,
             padding: 12,
             cornerRadius: 8,
@@ -323,16 +330,19 @@ export default function TitrationChart({ result, sub, titrant, state }: Props) {
                 c.arc(xP, yP, 5, 0, Math.PI * 2);
                 c.fillStyle = '#f472b6';
                 c.fill();
-                c.strokeStyle = 'rgba(6,10,18,0.8)';
+                c.strokeStyle = '#fda4af';
                 c.lineWidth = 2;
                 c.stroke();
 
                 c.font = '600 10px monospace';
                 const text = `pH=${e.pH}`;
                 const tw = c.measureText(text).width;
-                c.fillStyle = 'rgba(6,10,18,0.8)';
+                c.fillStyle = CHART_LIGHT.labelBg;
+                c.strokeStyle = CHART_LIGHT.tooltipBorder;
+                c.lineWidth = 1;
                 c.fillRect(xP - tw / 2 - 4, yP - 22, tw + 8, 16);
-                c.fillStyle = '#f472b6';
+                c.strokeRect(xP - tw / 2 - 4, yP - 22, tw + 8, 16);
+                c.fillStyle = '#be185d';
                 c.textAlign = 'center';
                 c.textBaseline = 'middle';
                 c.fillText(text, xP, yP - 14);
@@ -349,16 +359,19 @@ export default function TitrationChart({ result, sub, titrant, state }: Props) {
                 c.arc(xP, yP, 4, 0, Math.PI * 2);
                 c.fillStyle = '#34d399';
                 c.fill();
-                c.strokeStyle = 'rgba(6,10,18,0.8)';
+                c.strokeStyle = '#6ee7b7';
                 c.lineWidth = 2;
                 c.stroke();
 
                 c.font = '600 10px monospace';
                 const text = `pH=${h.pH}`;
                 const tw = c.measureText(text).width;
-                c.fillStyle = 'rgba(6,10,18,0.8)';
+                c.fillStyle = CHART_LIGHT.labelBg;
+                c.strokeStyle = CHART_LIGHT.tooltipBorder;
+                c.lineWidth = 1;
                 c.fillRect(xP - tw / 2 - 4, yP + 8, tw + 8, 16);
-                c.fillStyle = '#fbbf24';
+                c.strokeRect(xP - tw / 2 - 4, yP + 8, tw + 8, 16);
+                c.fillStyle = '#b45309';
                 c.textAlign = 'center';
                 c.textBaseline = 'middle';
                 c.fillText(text, xP, yP + 16);
@@ -378,7 +391,7 @@ export default function TitrationChart({ result, sub, titrant, state }: Props) {
   }, [result, state, sub, titrant]);
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full min-h-[360px] rounded-xl border border-[var(--color-border)] bg-white p-3 shadow-sm">
       <canvas ref={canvasRef} />
     </div>
   );

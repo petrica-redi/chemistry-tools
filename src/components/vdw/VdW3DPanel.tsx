@@ -13,6 +13,7 @@ import {
   type BinodalPoint,
 } from './VdWEngine';
 import GasSelector from './GasSelector';
+import { CHART_LIGHT } from '@/lib/chart-theme';
 import Panel from '@/components/shared/Panel';
 import SliderControl from '@/components/shared/SliderControl';
 import ToggleSwitch from '@/components/shared/ToggleSwitch';
@@ -319,21 +320,36 @@ export default function VdW3DPanel({ gas, gasId, onGasChange }: Props) {
       }
     }
 
+    const sceneAxis = {
+      gridcolor: CHART_LIGHT.grid,
+      showbackground: true,
+      backgroundcolor: CHART_LIGHT.sceneBg,
+      color: CHART_LIGHT.tick,
+      titlefont: { color: CHART_LIGHT.axisTitle, size: 11 },
+    };
     const layout = {
       scene: {
-        xaxis: { title: 'V (L/mol)', range: [Vm, VX], backgroundcolor: 'rgba(12,18,32,.8)', gridcolor: 'rgba(100,140,200,.1)', showbackground: true, color: '#64748b' },
-        yaxis: { title: 'T (K)', range: [Tm, TX], backgroundcolor: 'rgba(18,12,32,.8)', gridcolor: 'rgba(100,140,200,.1)', showbackground: true, color: '#64748b' },
-        zaxis: { title: 'P (atm)', range: [0, PX], backgroundcolor: 'rgba(12,32,18,.8)', gridcolor: 'rgba(100,140,200,.1)', showbackground: true, color: '#64748b' },
+        xaxis: { title: 'V (L/mol)', range: [Vm, VX], ...sceneAxis },
+        yaxis: { title: 'T (K)', range: [Tm, TX], ...sceneAxis },
+        zaxis: { title: 'P (atm)', range: [0, PX], ...sceneAxis },
         aspectratio: { x: 1.2, y: 1, z: 0.9 },
         camera: { eye: { x: 1.8, y: -1.6, z: 0.8 } },
       },
       margin: { t: 40, r: 10, b: 10, l: 10 },
       title: {
         text: `<b>${gas.formula} (${gas.name})</b> — P-V-T Surface`,
-        font: { family: 'system-ui', size: 16, color: '#e2e8f0' }, y: 0.97,
+        font: { family: 'system-ui', size: 16, color: CHART_LIGHT.title },
+        y: 0.97,
       },
-      legend: { x: 0, y: 1, bgcolor: 'rgba(6,10,18,.9)', font: { size: 10, color: '#94a3b8' } },
-      paper_bgcolor: '#0c1220',
+      legend: {
+        x: 0,
+        y: 1,
+        bgcolor: CHART_LIGHT.legendBg,
+        bordercolor: CHART_LIGHT.legendBorder,
+        borderwidth: 1,
+        font: { size: 10, color: CHART_LIGHT.legendText },
+      },
+      paper_bgcolor: CHART_LIGHT.paperBg,
     };
 
     Plotly.react(plotRef.current, traces, layout, { responsive: true, displaylogo: false });
@@ -403,8 +419,11 @@ export default function VdW3DPanel({ gas, gasId, onGasChange }: Props) {
           </button>
         </Panel>
       </div>
-      <div className="flex-1 flex flex-col min-w-0">
-        <div ref={plotRef} className="flex-1 p-3 min-h-0" />
+      <div className="flex-1 flex flex-col min-w-0 bg-[var(--color-bg-secondary)]">
+        <div
+          ref={plotRef}
+          className="flex-1 min-h-[280px] mx-3 mt-3 rounded-xl border border-[var(--color-border)] bg-white shadow-sm overflow-hidden"
+        />
         <div className="flex items-center gap-3 px-4 py-2 border-t border-[var(--color-border)] text-[11px] font-mono text-[var(--color-text-muted)]">
           <div
             className="w-2 h-2 rounded-full"
