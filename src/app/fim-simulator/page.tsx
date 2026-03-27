@@ -6,6 +6,18 @@ export const metadata: Metadata = {
   description: 'Advanced field ion microscopy tip simulator with 3D visualization.',
 };
 
-export default function FIMSimulatorPage() {
-  return <FIMWrapper />;
+export default async function FIMSimulatorPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string>>;
+}) {
+  const sp = await searchParams;
+  return (
+    <FIMWrapper
+      initialMatKey={sp.material}
+      initialH={sp.h ? Number(sp.h) : undefined}
+      initialK={sp.k ? Number(sp.k) : undefined}
+      initialL={sp.l ? Number(sp.l) : undefined}
+    />
+  );
 }

@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   description: 'Van der Waals real gas P-V-T explorer with 2D isotherms and 3D surfaces for 18 gases.',
 };
 
-export default function VdWExplorerPage() {
-  return <VdWWrapper />;
+export default async function VdWExplorerPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string>>;
+}) {
+  const sp = await searchParams;
+  return <VdWWrapper initialGasId={sp.gas} />;
 }

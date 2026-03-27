@@ -8,9 +8,14 @@ import {
 } from './OrbitalPhysics';
 import Panel from '@/components/shared/Panel';
 import SliderControl from '@/components/shared/SliderControl';
+import RelatedTools from '@/components/shared/RelatedTools';
+import { SYMBOL_TO_Z } from '@/lib/connections';
 
-export default function OrbitalsViewer() {
-  const [Z, setZ] = useState(6);
+interface Props { initialZ?: number; initialElement?: string; }
+
+export default function OrbitalsViewer({ initialZ, initialElement }: Props = {}) {
+  const resolvedZ = initialZ ?? (initialElement ? SYMBOL_TO_Z[initialElement] : undefined);
+  const [Z, setZ] = useState(resolvedZ && resolvedZ >= 1 && resolvedZ <= 118 ? resolvedZ : 6);
   const [mode, setMode] = useState<'points' | 'iso'>('points');
   const [density, setDensity] = useState(2);
   const [orbitals, setOrbitals] = useState<OrbitalDef[]>(() => makeOrbitals());
@@ -336,6 +341,11 @@ export default function OrbitalsViewer() {
               </div>
             );
           })}
+        </div>
+
+        {/* Related tools */}
+        <div className="px-4 py-3 border-t border-[var(--color-border)]">
+          <RelatedTools toolId="orbitals" links={{ fim: `?material=${ELEMENTS[Z]}&z=${Z}`, titration: '' }} />
         </div>
 
         {/* Bottom controls */}

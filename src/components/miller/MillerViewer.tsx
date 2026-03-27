@@ -9,6 +9,8 @@ import {
 import Panel from '@/components/shared/Panel';
 import SliderControl from '@/components/shared/SliderControl';
 import ToggleSwitch from '@/components/shared/ToggleSwitch';
+import RelatedTools from '@/components/shared/RelatedTools';
+import { SYMBOL_TO_Z } from '@/lib/connections';
 
 interface MillerState {
   element: string;
@@ -36,8 +38,25 @@ const INITIAL: MillerState = {
   atomSize: 100,
 };
 
-export default function MillerViewer() {
-  const [s, setS] = useState<MillerState>(INITIAL);
+interface MillerViewerProps {
+  initialH?: number;
+  initialK?: number;
+  initialL?: number;
+  initialLattice?: string;
+  initialElement?: string;
+}
+
+export default function MillerViewer({
+  initialH, initialK, initialL, initialLattice, initialElement,
+}: MillerViewerProps = {}) {
+  const [s, setS] = useState<MillerState>({
+    ...INITIAL,
+    h: initialH ?? INITIAL.h,
+    k: initialK ?? INITIAL.k,
+    l: initialL ?? INITIAL.l,
+    lattice: (initialLattice as LatticeType) ?? INITIAL.lattice,
+    element: initialElement ?? INITIAL.element,
+  });
   const [stats, setStats] = useState({ atoms: 0, surface: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -327,6 +346,16 @@ export default function MillerViewer() {
             ))}
           </div>
         </Panel>
+
+        <RelatedTools
+          toolId="miller"
+          links={{
+            fim: `?h=${s.h}&k=${s.k}&l=${s.l}&lattice=${s.lattice}${s.element ? `&material=${s.element}` : ''}`,
+            orbitals: s.element && SYMBOL_TO_Z[s.element]
+              ? `?z=${SYMBOL_TO_Z[s.element]}`
+              : s.element ? `?element=${s.element}` : '',
+          }}
+        />
       </div>
 
       <div className="flex-1 relative min-w-0">

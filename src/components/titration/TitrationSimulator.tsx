@@ -5,6 +5,7 @@ import { DB, type Species, getPkas, getTitrantCandidates, getDefaultTitrant } fr
 import { calculate, type TitrationResult } from './ChemistryEngine';
 import TitrationChart from './TitrationChart';
 import TitrationControls from './TitrationControls';
+import RelatedTools from '@/components/shared/RelatedTools';
 
 export interface TitrationState {
   subId: string;
@@ -64,6 +65,9 @@ export default function TitrationSimulator() {
           result={result}
           onUpdate={update}
         />
+        <div className="px-3 pb-3">
+          <RelatedTools toolId="titration" />
+        </div>
       </div>
       <div className="flex-1 p-4 flex flex-col min-w-0">
         <div className="text-sm text-[var(--color-text-secondary)] mb-3">

@@ -11,6 +11,8 @@ import {
 import { runSimulation, type SimResult } from './CTKEngine';
 import TabBar from '@/components/shared/TabBar';
 import Panel from '@/components/shared/Panel';
+import RelatedTools from '@/components/shared/RelatedTools';
+import { CTK_TO_VDW } from '@/lib/connections';
 import {
   Chart,
   LineController,
@@ -30,11 +32,16 @@ const TABS = [
   { id: 'results', label: 'Results' },
 ];
 
-export default function CTKSimulator() {
+interface Props { initialGasA?: string; }
+
+export default function CTKSimulator({ initialGasA }: Props = {}) {
   const [tab, setTab] = useState('panel');
-  const [mixA, setMixA] = useState<MixGas[]>([
-    { g: 'H2', f: 10 }, { g: 'He', f: 40 }, { g: 'none', f: 0 }, { g: 'none', f: 0 },
-  ]);
+  const [mixA, setMixA] = useState<MixGas[]>(() => {
+    if (initialGasA && CTK_GASES[initialGasA]) {
+      return [{ g: initialGasA, f: 10 }, { g: 'He', f: 40 }, { g: 'none', f: 0 }, { g: 'none', f: 0 }];
+    }
+    return [{ g: 'H2', f: 10 }, { g: 'He', f: 40 }, { g: 'none', f: 0 }, { g: 'none', f: 0 }];
+  });
   const [mixB, setMixB] = useState<MixGas[]>([
     { g: 'H2', f: 10 }, { g: 'CO', f: 5 }, { g: 'Ar', f: 35 }, { g: 'none', f: 0 },
   ]);
@@ -373,18 +380,31 @@ export default function CTKSimulator() {
         )}
       </div>
 
-      {/* Simulate button */}
-      <div className="border-t border-[var(--color-border)] p-3 text-center">
-        <button
-          onClick={doSim}
-          disabled={running}
-          className="px-10 py-3 bg-gradient-to-r from-blue-500 to-emerald-500 text-white font-mono font-bold text-sm rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-wait"
-        >
-          {running ? '⏳ Simulating...' : '▶ RUN SIMULATION'}
-        </button>
-        <div className="text-[8px] text-[var(--color-text-muted)] font-mono mt-2">
-          Tanks-in-series · Fuller–Schettler–Giddings · Taylor · Frit P4 · Ne dilution
+      {/* Simulate button + Related tools */}
+      <div className="border-t border-[var(--color-border)] p-3">
+        <div className="text-center mb-4">
+          <button
+            onClick={doSim}
+            disabled={running}
+            className="px-10 py-3 bg-gradient-to-r from-blue-500 to-emerald-500 text-white font-mono font-bold text-sm rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-wait"
+          >
+            {running ? '⏳ Simulating...' : '▶ RUN SIMULATION'}
+          </button>
+          <div className="text-[8px] text-[var(--color-text-muted)] font-mono mt-2">
+            Tanks-in-series · Fuller–Schettler–Giddings · Taylor · Frit P4 · Ne dilution
+          </div>
         </div>
+        {(() => {
+          // Pick the first non-none gas from mix A for VdW deep link
+          const firstGas = mixA.find((m) => m.g !== 'none');
+          const vdwId = firstGas ? CTK_TO_VDW[firstGas.g] : undefined;
+          return (
+            <RelatedTools
+              toolId="ctk"
+              links={vdwId ? { vdw: `?gas=${vdwId}` } : {}}
+            />
+          );
+        })()}
       </div>
     </div>
   );

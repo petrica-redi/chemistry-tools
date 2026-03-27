@@ -1,4 +1,15 @@
 'use client';
 import dynamic from 'next/dynamic';
+
 const FIMSimulator = dynamic(() => import('./FIMSimulator'), { ssr: false });
-export default function FIMWrapper() { return <FIMSimulator />; }
+
+interface Props {
+  initialMatKey?: string;
+  initialH?: number;
+  initialK?: number;
+  initialL?: number;
+}
+
+export default function FIMWrapper(props: Props) {
+  return <FIMSimulator {...props} />;
+}

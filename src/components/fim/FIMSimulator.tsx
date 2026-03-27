@@ -12,6 +12,8 @@ import SliderControl from '@/components/shared/SliderControl';
 import SelectControl from '@/components/shared/SelectControl';
 import ToggleSwitch from '@/components/shared/ToggleSwitch';
 import TabBar from '@/components/shared/TabBar';
+import RelatedTools from '@/components/shared/RelatedTools';
+import { SYMBOL_TO_Z } from '@/lib/connections';
 
 interface FIMState {
   matKey: string;
@@ -67,8 +69,23 @@ const INITIAL: FIMState = {
   spotSize: 1.0,
 };
 
-export default function FIMSimulator() {
-  const [s, setS] = useState<FIMState>(INITIAL);
+interface FIMSimulatorProps {
+  initialMatKey?: string;
+  initialH?: number;
+  initialK?: number;
+  initialL?: number;
+}
+
+export default function FIMSimulator({
+  initialMatKey, initialH, initialK, initialL,
+}: FIMSimulatorProps = {}) {
+  const [s, setS] = useState<FIMState>({
+    ...INITIAL,
+    matKey: initialMatKey && MAT[initialMatKey] ? initialMatKey : INITIAL.matKey,
+    poleH: initialH ?? INITIAL.poleH,
+    poleK: initialK ?? INITIAL.poleK,
+    poleL: initialL ?? INITIAL.poleL,
+  });
   const [tab, setTab] = useState<'3d' | 'micro'>('3d');
   const [generating, setGenerating] = useState(false);
   const [stats, setStats] = useState({ atoms: 0, surface: 0 });
@@ -345,6 +362,14 @@ export default function FIMSimulator() {
         >
           {generating ? 'Generating...' : 'Regenerate Tip'}
         </button>
+
+        <RelatedTools
+          toolId="fim"
+          links={{
+            miller: `?h=${s.poleH}&k=${s.poleK}&l=${s.poleL}&lattice=${latType}&material=${s.matKey}`,
+            orbitals: SYMBOL_TO_Z[s.matKey] ? `?z=${SYMBOL_TO_Z[s.matKey]}` : `?element=${s.matKey}`,
+          }}
+        />
       </div>
 
       <div className="flex-1 flex flex-col min-w-0">
