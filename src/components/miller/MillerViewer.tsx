@@ -18,6 +18,7 @@ interface MillerState {
   h: number;
   k: number;
   l: number;
+  i?: number;  // For HCP 4-index notation
   sizeX: number;
   sizeY: number;
   sizeZ: number;
@@ -25,17 +26,38 @@ interface MillerState {
   cutAtoms: boolean;
   showAxes: boolean;
   atomSize: number;
+  showScaleBar: boolean;
+  scaleBarColor: string;
+  projectionMode: 'perspective' | 'orthographic';
+  lightIntensity: number;
+  backgroundColor: string;
+  zoom: number;
+  viewAngle: number;
+  rotationZ: number;
+  selectionMode: boolean;
+  transparency: number;
 }
 
 const INITIAL: MillerState = {
   element: '',
   lattice: 'FCC',
   h: 1, k: 1, l: 1,
+  i: -2,
   sizeX: 5, sizeY: 5, sizeZ: 5,
   showPlane: true,
   cutAtoms: true,
   showAxes: true,
   atomSize: 100,
+  showScaleBar: false,
+  scaleBarColor: '#ffff00',
+  projectionMode: 'perspective',
+  lightIntensity: 100,
+  backgroundColor: '#0a0a0a',
+  zoom: 100,
+  viewAngle: 0,
+  rotationZ: 0,
+  selectionMode: false,
+  transparency: 50,
 };
 
 interface MillerViewerProps {
@@ -60,10 +82,14 @@ export default function MillerViewer({
   const [stats, setStats] = useState({ atoms: 0, surface: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
-  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | THREE.OrthographicCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const groupRef = useRef<THREE.Group>(new THREE.Group());
   const axesRef = useRef<THREE.AxesHelper | null>(null);
+  const scaleBarRef = useRef<THREE.Group | null>(null);
+  const directionalLightRef = useRef<THREE.DirectionalLight | null>(null);
+  const ambientLightRef = useRef<THREE.AmbientLight | null>(null);
+  const selectedAtomsRef = useRef<Set<THREE.Mesh>>(new Set());
   const orbitRef = useRef({ drag: false, pan: false, px: 0, py: 0, th: Math.PI / 4, ph: Math.PI / 4, dst: 25, tx: 0, ty: 0, tz: 0 });
   const animRef = useRef<number>(0);
 
@@ -73,6 +99,12 @@ export default function MillerViewer({
       if (patch.element && patch.element !== '' && ELEMENTS_DB[patch.element]) {
         const el = ELEMENTS_DB[patch.element];
         next.lattice = el.lattice as LatticeType;
+      }
+      // Auto-calculate i for HCP
+      if (next.lattice === 'HCP' && (patch.h !== undefined || patch.k !== undefined)) {
+        const h = patch.h !== undefined ? patch.h : prev.h;
+        const k = patch.k !== undefined ? patch.k : prev.k;
+        next.i = -(h + k);
       }
       return next;
     });
@@ -101,8 +133,13 @@ export default function MillerViewer({
 
     const dl = new THREE.DirectionalLight(0xffffff, 1.2);
     dl.position.set(50, 50, 50);
+    directionalLightRef.current = dl;
     scene.add(dl);
-    scene.add(new THREE.AmbientLight(0x404040, 0.6));
+
+    const al = new THREE.AmbientLight(0x404040, 0.6);
+    ambientLightRef.current = al;
+    scene.add(al);
+
     scene.add(new THREE.DirectionalLight(0x4fc3f7, 0.4).translateX(-50).translateY(-50));
 
     scene.add(groupRef.current);
@@ -172,6 +209,153 @@ export default function MillerViewer({
     };
   }, []);
 
+  // Handle projection mode changes
+  useEffect(() => {
+    const scene = sceneRef.current;
+    const renderer = rendererRef.current;
+    const canvas = canvasRef.current;
+    if (!scene || !renderer || !canvas) return;
+
+    const W = canvas.clientWidth;
+    const H = canvas.clientHeight;
+    const aspect = W / H;
+
+    if (s.projectionMode === 'orthographic') {
+      const frustumSize = 15;
+      const orthoCamera = new THREE.OrthographicCamera(
+        (frustumSize * aspect) / -2,
+        (frustumSize * aspect) / 2,
+        frustumSize / 2,
+        frustumSize / -2,
+        0.1,
+        1000
+      );
+      orthoCamera.position.set(15, 15, 15);
+      orthoCamera.lookAt(0, 0, 0);
+      orthoCamera.zoom = 25 / s.zoom;
+      orthoCamera.updateProjectionMatrix();
+      cameraRef.current = orthoCamera;
+    } else {
+      const perspCamera = new THREE.PerspectiveCamera(50, aspect, 0.1, 1000);
+      perspCamera.position.set(15, 15, 15);
+      perspCamera.lookAt(0, 0, 0);
+      cameraRef.current = perspCamera;
+    }
+  }, [s.projectionMode]);
+
+  // Handle background color changes
+  useEffect(() => {
+    if (sceneRef.current) {
+      sceneRef.current.background = new THREE.Color(s.backgroundColor);
+    }
+  }, [s.backgroundColor]);
+
+  // Handle light intensity changes
+  useEffect(() => {
+    const intensity = s.lightIntensity / 100;
+    if (directionalLightRef.current) {
+      directionalLightRef.current.intensity = 1.2 * intensity;
+    }
+    if (ambientLightRef.current) {
+      ambientLightRef.current.intensity = 0.6 * intensity;
+    }
+  }, [s.lightIntensity]);
+
+  // Update transparency for selected atoms
+  const updateSelectedAtomsTransparency = useCallback(() => {
+    const opacity = s.transparency / 100;
+    for (const mesh of selectedAtomsRef.current) {
+      if (mesh.material instanceof THREE.MeshPhysicalMaterial) {
+        mesh.material.transparent = true;
+        mesh.material.opacity = opacity;
+      }
+    }
+  }, [s.transparency]);
+
+  // Handle zoom changes
+  useEffect(() => {
+    const camera = cameraRef.current;
+    if (!camera) return;
+
+    if (camera instanceof THREE.OrthographicCamera) {
+      camera.zoom = 25 / s.zoom;
+      camera.updateProjectionMatrix();
+    } else if (camera instanceof THREE.PerspectiveCamera) {
+      const O = orbitRef.current;
+      O.dst = 25 * (100 / s.zoom);
+    }
+  }, [s.zoom]);
+
+  // Handle view angle and rotation changes
+  useEffect(() => {
+    const O = orbitRef.current;
+    const angleRad = (s.viewAngle * Math.PI) / 180;
+    const rotRad = (s.rotationZ * Math.PI) / 180;
+
+    O.ph = Math.PI / 2 - angleRad;
+    O.th = rotRad;
+  }, [s.viewAngle, s.rotationZ]);
+
+  // Update transparency when slider changes
+  useEffect(() => {
+    updateSelectedAtomsTransparency();
+  }, [s.transparency, updateSelectedAtomsTransparency]);
+
+  // Handle selection mode clicks
+  useEffect(() => {
+    if (!s.selectionMode || !rendererRef.current || !cameraRef.current) return;
+
+    const renderer = rendererRef.current;
+    const camera = cameraRef.current;
+    const canvas = canvasRef.current;
+    const handleClick = (event: MouseEvent) => {
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
+
+      // Get all meshes from the group
+      const meshes: THREE.Mesh[] = [];
+      groupRef.current?.traverse((obj) => {
+        if (obj instanceof THREE.Mesh && (obj as any) !== groupRef.current) {
+          meshes.push(obj);
+        }
+      });
+
+      const intersects = raycaster.intersectObjects(meshes);
+      if (intersects.length > 0) {
+        const mesh = intersects[0].object as THREE.Mesh;
+        mesh.userData.isSelected = !mesh.userData.isSelected;
+        if (mesh.userData.isSelected) {
+          selectedAtomsRef.current.add(mesh);
+        } else {
+          selectedAtomsRef.current.delete(mesh);
+        }
+        updateSelectedAtomsTransparency();
+      }
+    };
+
+    renderer.domElement.addEventListener('click', handleClick);
+    return () => {
+      renderer.domElement.removeEventListener('click', handleClick);
+    };
+  }, [s.selectionMode, updateSelectedAtomsTransparency]);
+
+  // Clear selection
+  const clearSelection = useCallback(() => {
+    for (const mesh of selectedAtomsRef.current) {
+      if (mesh.material instanceof THREE.MeshPhysicalMaterial) {
+        mesh.material.opacity = 1.0;
+      }
+      mesh.userData.isSelected = false;
+    }
+    selectedAtomsRef.current.clear();
+  }, []);
+
   // Rebuild crystal
   useEffect(() => {
     const scene = sceneRef.current;
@@ -217,6 +401,9 @@ export default function MillerViewer({
       metalness: 0.4, roughness: 0.3,
     });
 
+    selectedAtomsRef.current.clear();
+    const atomMeshes: THREE.Mesh[] = [];
+
     for (const pos of positions) {
       const dist = normalLen > 0 ? atomDistToPlane(pos, h, k, l) : 0;
       if (s.cutAtoms && normalLen > 0 && dist > 0.01) continue;
@@ -226,8 +413,11 @@ export default function MillerViewer({
 
       const mesh = new THREE.Mesh(sphereGeo, isSurface ? surfaceMat : bulkMat);
       mesh.position.copy(pos);
+      mesh.userData = { isSelected: false, originalOpacity: 1.0 };
       group.add(mesh);
+      atomMeshes.push(mesh);
     }
+
 
     // Miller plane
     if (s.showPlane && normalLen > 0) {
@@ -253,7 +443,7 @@ export default function MillerViewer({
     }
 
     setStats({ atoms: group.children.length, surface: surfaceCount });
-  }, [s]);
+  }, [s, updateSelectedAtomsTransparency]);
 
   const elemGroups = {
     FCC: Object.entries(ELEMENTS_DB).filter(([, v]) => v.lattice === 'FCC'),
@@ -289,22 +479,47 @@ export default function MillerViewer({
         </Panel>
 
         <Panel title={`Miller Indices (${s.lattice === 'HCP' ? 'h k i l' : 'h k l'})`}>
-          <div className="flex gap-2">
-            <div>
-              <label className="text-[9px] text-[var(--color-text-muted)] block mb-1">h</label>
-              <input type="number" value={s.h} onChange={(e) => update({ h: +e.target.value })} />
+          {s.lattice === 'HCP' ? (
+            <div className="flex gap-2">
+              <div>
+                <label className="text-[9px] text-[var(--color-text-muted)] block mb-1">h</label>
+                <input type="number" value={s.h} onChange={(e) => update({ h: +e.target.value })} />
+              </div>
+              <div>
+                <label className="text-[9px] text-[var(--color-text-muted)] block mb-1">k</label>
+                <input type="number" value={s.k} onChange={(e) => update({ k: +e.target.value })} />
+              </div>
+              <div>
+                <label className="text-[9px] text-[var(--color-text-muted)] block mb-1">i</label>
+                <input type="number" value={s.i} readOnly className="opacity-70" />
+              </div>
+              <div>
+                <label className="text-[9px] text-[var(--color-text-muted)] block mb-1">l</label>
+                <input type="number" value={s.l} onChange={(e) => update({ l: +e.target.value })} />
+              </div>
             </div>
-            <div>
-              <label className="text-[9px] text-[var(--color-text-muted)] block mb-1">k</label>
-              <input type="number" value={s.k} onChange={(e) => update({ k: +e.target.value })} />
+          ) : (
+            <div className="flex gap-2">
+              <div>
+                <label className="text-[9px] text-[var(--color-text-muted)] block mb-1">h</label>
+                <input type="number" value={s.h} onChange={(e) => update({ h: +e.target.value })} />
+              </div>
+              <div>
+                <label className="text-[9px] text-[var(--color-text-muted)] block mb-1">k</label>
+                <input type="number" value={s.k} onChange={(e) => update({ k: +e.target.value })} />
+              </div>
+              <div>
+                <label className="text-[9px] text-[var(--color-text-muted)] block mb-1">l</label>
+                <input type="number" value={s.l} onChange={(e) => update({ l: +e.target.value })} />
+              </div>
             </div>
-            <div>
-              <label className="text-[9px] text-[var(--color-text-muted)] block mb-1">l</label>
-              <input type="number" value={s.l} onChange={(e) => update({ l: +e.target.value })} />
-            </div>
-          </div>
+          )}
           <div className="text-[10px] text-[var(--color-text-muted)] mt-2 bg-[var(--color-bg-tertiary)] p-2 rounded border-l-2 border-[var(--color-accent-cyan)]">
-            ({s.h} {s.k} {s.l}) plane — surface atoms highlighted in cyan
+            {s.lattice === 'HCP' ? (
+              <>Constraint: i = -(h + k)</>
+            ) : (
+              <>({s.h} {s.k} {s.l}) plane — surface atoms highlighted in cyan</>
+            )}
           </div>
         </Panel>
 
@@ -317,6 +532,127 @@ export default function MillerViewer({
               </div>
             ))}
           </div>
+        </Panel>
+
+        <Panel title="Scale Bar">
+          <div className="space-y-3">
+            <ToggleSwitch label="Show scale bar" checked={s.showScaleBar} onChange={(v) => update({ showScaleBar: v })} color="var(--color-accent-cyan)" />
+            {s.showScaleBar && (
+              <div>
+                <label className="text-[12px] text-[var(--color-text-muted)] block mb-2">Scale bar color:</label>
+                <input
+                  type="color"
+                  value={s.scaleBarColor}
+                  onChange={(e) => update({ scaleBarColor: e.target.value })}
+                  className="w-full h-8 cursor-pointer rounded border border-[var(--color-border)]"
+                />
+              </div>
+            )}
+          </div>
+        </Panel>
+
+        <Panel title="Projection Mode">
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 cursor-pointer text-[12px]">
+              <input
+                type="radio"
+                name="projection"
+                value="perspective"
+                checked={s.projectionMode === 'perspective'}
+                onChange={() => update({ projectionMode: 'perspective' })}
+              />
+              <span>Perspective</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer text-[12px]">
+              <input
+                type="radio"
+                name="projection"
+                value="orthographic"
+                checked={s.projectionMode === 'orthographic'}
+                onChange={() => update({ projectionMode: 'orthographic' })}
+              />
+              <span>Orthographic</span>
+            </label>
+          </div>
+        </Panel>
+
+        <Panel title="Lighting & Colors">
+          <SliderControl
+            label="Light intensity"
+            value={s.lightIntensity}
+            min={0}
+            max={200}
+            step={5}
+            unit="%"
+            onChange={(v) => update({ lightIntensity: v })}
+          />
+          <div className="mt-3">
+            <label className="text-[12px] text-[var(--color-text-muted)] block mb-2">Background color:</label>
+            <input
+              type="color"
+              value={s.backgroundColor}
+              onChange={(e) => update({ backgroundColor: e.target.value })}
+              className="w-full h-8 cursor-pointer rounded border border-[var(--color-border)]"
+            />
+          </div>
+        </Panel>
+
+        <Panel title="Camera Controls">
+          <SliderControl
+            label="Zoom"
+            value={s.zoom}
+            min={20}
+            max={1000}
+            step={10}
+            unit="%"
+            onChange={(v) => update({ zoom: v })}
+          />
+          <SliderControl
+            label="View angle (θ)"
+            value={s.viewAngle}
+            min={0}
+            max={90}
+            step={1}
+            unit="°"
+            onChange={(v) => update({ viewAngle: v })}
+          />
+          <SliderControl
+            label="Rotation (Z)"
+            value={s.rotationZ}
+            min={0}
+            max={360}
+            step={1}
+            unit="°"
+            onChange={(v) => update({ rotationZ: v })}
+          />
+        </Panel>
+
+        <Panel title="Selection & Transparency">
+          <ToggleSwitch
+            label="Selection mode (click to hide)"
+            checked={s.selectionMode}
+            onChange={(v) => update({ selectionMode: v })}
+            color="var(--color-accent-blue)"
+          />
+          {s.selectionMode && (
+            <>
+              <SliderControl
+                label="Transparency"
+                value={s.transparency}
+                min={0}
+                max={100}
+                step={5}
+                unit="%"
+                onChange={(v) => update({ transparency: v })}
+              />
+              <button
+                onClick={clearSelection}
+                className="w-full mt-2 px-3 py-2 text-[12px] bg-[var(--color-accent-blue)]/10 border border-[var(--color-accent-blue)] rounded text-[var(--color-accent-blue)] hover:bg-[var(--color-accent-blue)]/20 transition-colors"
+              >
+                Clear Selection
+              </button>
+            </>
+          )}
         </Panel>
 
         <Panel title="Display">

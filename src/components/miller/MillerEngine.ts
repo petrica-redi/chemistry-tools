@@ -26,6 +26,8 @@ export const ELEMENTS_DB: Record<string, ElementData> = {
   V: { name: 'Vanadium', lattice: 'BCC', a: 3.03, color: '#A8A8A8' },
   Nb: { name: 'Niobium', lattice: 'BCC', a: 3.30, color: '#8C92AC' },
   Ta: { name: 'Tantalum', lattice: 'BCC', a: 3.31, color: '#A0A0A0' },
+  Ba: { name: 'Barium', lattice: 'BCC', a: 5.02, color: '#D3D3D3' },
+  K: { name: 'Potassium', lattice: 'BCC', a: 5.23, color: '#E0E0E0' },
   Na: { name: 'Sodium', lattice: 'BCC', a: 4.29, color: '#D0D0D0' },
   Li: { name: 'Lithium', lattice: 'BCC', a: 3.51, color: '#C0C0C0' },
   Mg: { name: 'Magnesium', lattice: 'HCP', a: 3.21, c: 5.21, color: '#8C92AC' },
@@ -33,6 +35,8 @@ export const ELEMENTS_DB: Record<string, ElementData> = {
   Ti: { name: 'Titanium', lattice: 'HCP', a: 2.95, c: 4.68, color: '#8C92AC' },
   Zr: { name: 'Zirconium', lattice: 'HCP', a: 3.23, c: 5.15, color: '#A8A8A8' },
   Co: { name: 'Cobalt', lattice: 'HCP', a: 2.51, c: 4.07, color: '#6B6B6B' },
+  Cd: { name: 'Cadmium', lattice: 'HCP', a: 2.98, c: 5.62, color: '#A0A0A0' },
+  Be: { name: 'Beryllium', lattice: 'HCP', a: 2.29, c: 3.58, color: '#C0C0C0' },
   Re: { name: 'Rhenium', lattice: 'HCP', a: 2.76, c: 4.46, color: '#8C92AC' },
 };
 

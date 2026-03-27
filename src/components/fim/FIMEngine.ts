@@ -33,6 +33,11 @@ function gcd3(a: number, b: number, c: number): number {
   return gcd(gcd(Math.abs(a), Math.abs(b)), Math.abs(c));
 }
 
+function hexToRGB(hex: string): [number, number, number] {
+  const v = parseInt(hex.slice(1), 16);
+  return [(v >> 16) & 255, (v >> 8) & 255, v & 255];
+}
+
 /* ================================================================
    CRYSTAL DIRECTIONS
    ================================================================ */
@@ -470,10 +475,15 @@ export { rv, mm3, mt3 };
 export function renderTip3D(
   ctx: CanvasRenderingContext2D, W: number, H: number,
   atoms: Float64Array, coords: Int32Array, fields: Float64Array,
-  latType: string, apexR: number, shankLenMul: number,
+  latType: string, apexR: number, shankDeg: number, shankLenMul: number,
   viewRM: number[], zoom: number, panX: number, panY: number,
   colormap: ColormapName, threshold: number, showDim: boolean,
+  bulkOpacity: number, bulkColor: string,
   lightAz: number, lightEl: number, ambientFrac: number, atomSizePct: number,
+  selfRotDeg: number,
+  millerMode: 'off' | 'main' | 'all', miller3dFont: number,
+  showStereo: boolean, stereoSize: number, stereoFont: number,
+  showZones: boolean, zoneLineW: number,
 ) {
   const cfg = LAT[latType];
   const n = atoms.length / 3;
@@ -504,6 +514,12 @@ export function renderTip3D(
   ];
   const atomR = fov * 0.5 * (atomSizePct / 100);
 
+  // Apply self-rotation around tip axis (z)
+  const srRad = selfRotDeg * Math.PI / 180;
+  const csr = Math.cos(srRad), ssr = Math.sin(srRad);
+  const selfRM = [csr, -ssr, 0, ssr, csr, 0, 0, 0, 1];
+  const combinedRM = mm3(viewRM, selfRM);
+
   interface Pt { sx: number; sy: number; depth: number; light: number; sz: number; c: number; El: number; isSurf: boolean; }
   const pts: Pt[] = [];
   for (let i = 0; i < n; i++) {
@@ -511,7 +527,7 @@ export function renderTip3D(
     const c = coords[i];
     const isSurf = c < cfg.bc;
     if (!isSurf && !showDim) continue;
-    const [rx, ry, rz] = rv(viewRM, atoms[x], atoms[x+1], atoms[x+2]);
+    const [rx, ry, rz] = rv(combinedRM, atoms[x], atoms[x+1], atoms[x+2]);
     const projX = cxS + rx * fov, projY = cyS - ry * fov;
     if (projX < -60 || projX > W + 60 || projY < -60 || projY > H + 60) continue;
     const r2 = Math.sqrt(rx*rx + ry*ry + rz*rz) || 1;
@@ -522,12 +538,19 @@ export function renderTip3D(
 
   pts.sort((a, b) => a.depth - b.depth);
 
+  // Parse bulk color
+  const bulkRGB = hexToRGB(bulkColor);
+  const bulkAlpha = bulkOpacity / 100;
+
   for (const a of pts) {
     if (!a.isSurf) {
       const brt = a.light;
-      const v = Math.round(200 * brt);
-      ctx.globalAlpha = 0.3;
-      ctx.fillStyle = `rgb(${v},${v},${v})`;
+      let br, bg, bb;
+      br = Math.round(bulkRGB[0] * brt);
+      bg = Math.round(bulkRGB[1] * brt);
+      bb = Math.round(bulkRGB[2] * brt);
+      ctx.globalAlpha = bulkAlpha;
+      ctx.fillStyle = `rgb(${br},${bg},${bb})`;
       ctx.beginPath(); ctx.arc(a.sx, a.sy, a.sz, 0, Math.PI * 2); ctx.fill();
       ctx.globalAlpha = 1;
       continue;
@@ -553,6 +576,16 @@ export function renderTip3D(
       ctx.fillStyle = `rgb(${lr},${lg},${lb})`;
     }
     ctx.beginPath(); ctx.arc(a.sx, a.sy, a.sz, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Miller indices (placeholder - would need crystal rotation matrix)
+  if (millerMode !== 'off') {
+    // Implementation would go here - requires crystal orientation data
+  }
+
+  // Stereographic projection (placeholder)
+  if (showStereo) {
+    // Implementation would go here
   }
 }
 

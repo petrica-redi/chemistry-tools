@@ -21,6 +21,9 @@ export default function OrbitalsViewer({ initialZ, initialElement }: Props = {})
   const [orbitals, setOrbitals] = useState<OrbitalDef[]>(() => makeOrbitals());
   const [showAxes, setShowAxes] = useState(false);
   const [showNucleus, setShowNucleus] = useState(true);
+  const [showScaleBar, setShowScaleBar] = useState(false);
+  const [showShadows, setShowShadows] = useState(false);
+  const [isoProbability, setIsoProbability] = useState(90);
   const [loading, setLoading] = useState(false);
 
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -58,14 +61,37 @@ export default function OrbitalsViewer({ initialZ, initialElement }: Props = {})
     scene.add(new THREE.AmbientLight(0x8899bb, 0.55));
     const dl = new THREE.DirectionalLight(0xffffff, 0.8);
     dl.position.set(20, 60, 40);
+    dl.castShadow = true;
+    dl.shadow.mapSize.width = 2048;
+    dl.shadow.mapSize.height = 2048;
+    dl.shadow.camera.near = 0.1;
+    dl.shadow.camera.far = 60;
+    dl.shadow.camera.left = -15;
+    dl.shadow.camera.right = 15;
+    dl.shadow.camera.top = 15;
+    dl.shadow.camera.bottom = -15;
+    dl.shadow.bias = -0.001;
+    dl.shadow.radius = 4;
     scene.add(dl);
 
     // Nucleus
     const nucGeo = new THREE.SphereGeometry(0.08, 16, 16);
     const nucMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, emissive: 0x4a9eff, emissiveIntensity: 0.5 });
     const nuc = new THREE.Mesh(nucGeo, nucMat);
+    nuc.castShadow = true;
     nucleusRef.current = nuc;
     scene.add(nuc);
+
+    // Shadow ground plane
+    const groundGeo = new THREE.PlaneGeometry(50, 50);
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0x0a0e18, roughness: 0.8, metalness: 0 });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -5;
+    ground.receiveShadow = true;
+    ground.visible = false;
+    (ground as any).__shadowGround = true;
+    scene.add(ground);
 
     scene.add(orbGroupRef.current);
 
@@ -133,6 +159,24 @@ export default function OrbitalsViewer({ initialZ, initialElement }: Props = {})
   useEffect(() => {
     if (nucleusRef.current) nucleusRef.current.visible = showNucleus;
   }, [showNucleus]);
+
+  // Update shadows and shadow ground
+  useEffect(() => {
+    const scene = sceneRef.current;
+    const renderer = rendererRef.current;
+    if (!scene || !renderer) return;
+    renderer.shadowMap.enabled = showShadows;
+    if (showShadows) {
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.shadowMap.needsUpdate = true;
+    }
+    // Toggle shadow ground visibility
+    scene.children.forEach((child: any) => {
+      if (child.__shadowGround) {
+        child.visible = showShadows;
+      }
+    });
+  }, [showShadows]);
 
   // Update axes
   useEffect(() => {
@@ -219,6 +263,37 @@ export default function OrbitalsViewer({ initialZ, initialElement }: Props = {})
     }
     return groups;
   }, [orbitals]);
+
+  const exportImage = useCallback((w: number, h: number) => {
+    const renderer = rendererRef.current;
+    if (!renderer) return;
+
+    const currentSize = new THREE.Vector2();
+    renderer.getSize(currentSize);
+    const pixelRatio = renderer.getPixelRatio();
+
+    renderer.setPixelRatio(1);
+    renderer.setSize(w, h);
+    const camera = cameraRef.current;
+    if (camera) {
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+
+    renderer.render(sceneRef.current!, camera!);
+
+    const link = document.createElement('a');
+    link.href = renderer.domElement.toDataURL('image/png');
+    link.download = `orbital-${ELEMENTS[Z]}-${w}x${h}.png`;
+    link.click();
+
+    renderer.setPixelRatio(pixelRatio);
+    renderer.setSize(currentSize.x, currentSize.y);
+    if (camera) {
+      camera.aspect = currentSize.x / currentSize.y;
+      camera.updateProjectionMatrix();
+    }
+  }, [Z]);
 
   return (
     <div className="flex h-full">
@@ -352,6 +427,9 @@ export default function OrbitalsViewer({ initialZ, initialElement }: Props = {})
         <div className="px-4 py-3 border-t border-[var(--color-border)] flex flex-col gap-2">
           <SliderControl label="Zoom" value={orbitRef.current.dst} min={0.5} max={50} step={0.1} onChange={(v) => { orbitRef.current.dst = v; }} />
           <SliderControl label="Density" value={density} min={0} max={4} step={1} onChange={setDensity} formatValue={(v) => ['Low', 'Med', 'High', 'Ultra', 'Max'][v]} />
+          {mode === 'iso' && (
+            <SliderControl label="Probability" value={isoProbability} min={50} max={99} step={1} unit="%" onChange={setIsoProbability} />
+          )}
           <div className="flex gap-2">
             <button
               onClick={() => setShowAxes(!showAxes)}
@@ -370,6 +448,40 @@ export default function OrbitalsViewer({ initialZ, initialElement }: Props = {})
               Nucleus
             </button>
           </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowScaleBar(!showScaleBar)}
+              className={`flex-1 text-[10px] font-mono py-1.5 rounded border transition-all ${
+                showScaleBar ? 'border-[var(--color-accent-green)] text-[var(--color-accent-green)] bg-[var(--color-accent-green)]/10' : 'border-[var(--color-border)] text-[var(--color-text-muted)]'
+              }`}
+            >
+              Scale
+            </button>
+            <button
+              onClick={() => setShowShadows(!showShadows)}
+              className={`flex-1 text-[10px] font-mono py-1.5 rounded border transition-all ${
+                showShadows ? 'border-[var(--color-accent-orange)] text-[var(--color-accent-orange)] bg-[var(--color-accent-orange)]/10' : 'border-[var(--color-border)] text-[var(--color-text-muted)]'
+              }`}
+            >
+              Shadows
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-1.5 border-t border-[var(--color-border)] pt-2 mt-2">
+            {[
+              { label: '4K', w: 3840, h: 2160 },
+              { label: '5K', w: 5120, h: 2880 },
+              { label: '6K', w: 6144, h: 3456 },
+              { label: '8K', w: 7680, h: 4320 },
+            ].map(({ label, w, h }) => (
+              <button
+                key={label}
+                onClick={() => exportImage(w, h)}
+                className="text-[9px] font-mono px-2 py-1 rounded border border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-accent-orange)] hover:text-[var(--color-accent-orange)] transition"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -387,6 +499,18 @@ export default function OrbitalsViewer({ initialZ, initialElement }: Props = {})
           <div>{ELEMENTS[Z]} (Z={Z})</div>
           <div>Zeff: Clementi-Raimondi / Slater</div>
         </div>
+        {showScaleBar && (
+          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 pointer-events-none">
+            <div className="flex flex-col items-center gap-1">
+              <div className="w-24 h-0.5 bg-[var(--color-text-muted)]" />
+              <div className="flex justify-between w-full">
+                <div className="w-0.5 h-2 bg-[var(--color-text-muted)]" />
+                <div className="w-0.5 h-2 bg-[var(--color-text-muted)]" />
+              </div>
+              <span className="text-[9px] text-[var(--color-text-muted)] mt-0.5">100 pm</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

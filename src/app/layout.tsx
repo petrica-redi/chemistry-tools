@@ -31,10 +31,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${plusJakarta.variable} ${jetbrainsMono.variable}`}>
-      <body className="flex h-screen overflow-hidden antialiased">
+    <html lang="en" className={`${plusJakarta.variable} ${jetbrainsMono.variable} dark`} style={{ colorScheme: 'dark' }}>
+      <body className="flex h-screen overflow-hidden antialiased" style={{ background: 'var(--color-bg-primary)' }}>
         <Sidebar />
-        <main className="flex-1 overflow-y-auto bg-[var(--color-bg-primary)] scroll-smooth">{children}</main>
+        <main className="flex-1 overflow-y-auto scroll-smooth" style={{ background: 'var(--color-bg-primary)' }}>
+          {children}
+        </main>
       </body>
     </html>
   );

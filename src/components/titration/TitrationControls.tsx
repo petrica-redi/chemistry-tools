@@ -193,6 +193,59 @@ export default function TitrationControls({ state, sub, titrant, result, onUpdat
         ))}
       </Panel>
 
+      {/* Equation Display */}
+      <Panel title="Equations">
+        <div className="space-y-2 text-[10px] leading-relaxed">
+          <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)] font-mono">
+            <div className="text-[var(--color-text-muted)] mb-1">Henderson-Hasselbalch:</div>
+            <div className="text-[var(--color-text-primary)]">
+              pH = pK<sub>a</sub> + log([A<sup>−</sup>]/[HA])
+            </div>
+          </div>
+          <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)] font-mono">
+            <div className="text-[var(--color-text-muted)] mb-1">Charge Balance:</div>
+            <div className="text-[var(--color-text-primary)] text-[9px]">
+              [H<sup>+</sup>] + [A<sup>−</sup>] = [OH<sup>−</sup>]
+            </div>
+          </div>
+          {result.eq.length > 0 && (
+            <div className="text-[var(--color-text-muted)]">
+              <div className="font-semibold">Equivalence Point:</div>
+              <div className="text-[9px] mt-1">
+                V<sub>eq</sub> = (C<sub>a</sub> × V<sub>a</sub>) / (C<sub>b</sub> × n<sub>eq</sub>)
+              </div>
+            </div>
+          )}
+        </div>
+      </Panel>
+
+      {/* Advanced options */}
+      <button
+        onClick={() => onUpdate({ showAdvanced: !state.showAdvanced })}
+        className="text-left text-[12px] font-semibold py-2 px-3 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent-cyan)] hover:text-[var(--color-accent-cyan)] transition flex items-center justify-between"
+      >
+        <span>Advanced Options</span>
+        <span className={`text-[10px] transition-transform ${state.showAdvanced ? 'rotate-180' : ''}`}>▼</span>
+      </button>
+      {state.showAdvanced && (
+        <Panel title="Advanced Settings">
+          <div className="space-y-3 text-[11px]">
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="text-[var(--color-text-muted)] mb-1 font-mono">Solver Method</div>
+              <div className="text-[var(--color-text-secondary)]">Bisection (200 iterations, tol 10<sup>−12</sup>)</div>
+            </div>
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="text-[var(--color-text-muted)] mb-1 font-mono">Temperature</div>
+              <div className="text-[var(--color-text-secondary)]">25°C (298 K) — Constants from literature</div>
+            </div>
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="text-[var(--color-text-muted)] mb-1 font-mono">Ionic Strength</div>
+              <div className="text-[var(--color-text-secondary)]">Simplified model (K<sub>w</sub> = 10<sup>−14</sup>)</div>
+            </div>
+          </div>
+        </Panel>
+      )}
+
       {/* Equivalence points info */}
       {result.eq.length > 0 && (
         <Panel title="Equivalence Points">

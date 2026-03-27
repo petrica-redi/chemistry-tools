@@ -35,6 +35,7 @@ interface State2D {
   showEqualAreas: boolean;
   eaIsotherm: number;
   showLiqZone: boolean;
+  liqZoneColor: string;
   showBinodal: boolean;
   showSpinodal: boolean;
   showIdeal: boolean;
@@ -54,6 +55,7 @@ function defaultState(gas: Gas): State2D {
     showEqualAreas: false,
     eaIsotherm: 3,
     showLiqZone: false,
+    liqZoneColor: '#4dabf7',
     showBinodal: false,
     showSpinodal: false,
     showIdeal: false,
@@ -102,11 +104,16 @@ export default function VdW2DPanel({ gas, gasId, onGasChange }: Props) {
     if (s.showLiqZone) {
       const bn = computeBinodal(a, bp, Tc);
       if (bn.length > 2) {
+        // Parse color and convert to rgba with transparency
+        const h = s.liqZoneColor;
+        const rr = parseInt(h.slice(1, 3), 16);
+        const gg = parseInt(h.slice(3, 5), 16);
+        const bb = parseInt(h.slice(5, 7), 16);
         traces.push({
           x: [...bn.map((p) => p.Vl), ...bn.map((p) => p.Vg).reverse()],
           y: [...bn.map((p) => p.P), ...bn.map((p) => p.P).reverse()],
           fill: 'toself',
-          fillcolor: 'rgba(96,165,250,.15)',
+          fillcolor: `rgba(${rr},${gg},${bb},.18)`,
           line: { color: 'transparent' },
           name: 'Liquefaction zone',
           hoverinfo: 'skip',
@@ -288,6 +295,17 @@ export default function VdW2DPanel({ gas, gasId, onGasChange }: Props) {
             <SliderControl label="Isotherm #" value={s.eaIsotherm} min={1} max={12} step={1} onChange={(v) => update({ eaIsotherm: v })} />
           )}
           <ToggleSwitch label="Liquefaction zone" checked={s.showLiqZone} onChange={(v) => update({ showLiqZone: v })} color="var(--color-accent-blue)" />
+          {s.showLiqZone && (
+            <div className="flex items-center gap-2 mt-2 ml-6">
+              <input
+                type="color"
+                value={s.liqZoneColor}
+                onChange={(e) => update({ liqZoneColor: e.target.value })}
+                className="w-8 h-8 rounded border border-[var(--color-border)] cursor-pointer"
+              />
+              <span className="text-[11px] text-[var(--color-text-muted)]">Color</span>
+            </div>
+          )}
           <ToggleSwitch label="Binodal" checked={s.showBinodal} onChange={(v) => update({ showBinodal: v })} color="var(--color-accent-pink)" />
           <ToggleSwitch label="Spinodal" checked={s.showSpinodal} onChange={(v) => update({ showSpinodal: v })} color="var(--color-accent-purple)" />
           <ToggleSwitch label="Ideal gas" checked={s.showIdeal} onChange={(v) => update({ showIdeal: v })} />

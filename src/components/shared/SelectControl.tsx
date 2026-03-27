@@ -63,12 +63,19 @@ export default function SelectControl({
   return (
     <div className="mb-3.5">
       <label
-        className="block text-[11px] font-medium mb-1.5"
+        className="block text-[11px] font-medium mb-1.5 transition-colors duration-300"
         style={{ color: 'var(--color-text-secondary)' }}
       >
         {label}
       </label>
-      <select value={value} onChange={(e) => onChange(e.target.value)}>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{
+          backgroundColor: 'var(--color-bg-secondary)',
+          borderRadius: '14px',
+        }}
+      >
         {renderOptions()}
       </select>
     </div>

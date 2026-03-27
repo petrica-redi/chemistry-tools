@@ -31,6 +31,8 @@ interface FIMState {
   colormap: ColormapName;
   threshold: number;
   showDim: boolean;
+  bulkOpacity: number;
+  bulkColor: string;
   lightAz: number;
   lightEl: number;
   ambient: number;
@@ -41,6 +43,17 @@ interface FIMState {
   microBright: number;
   microContrast: number;
   spotSize: number;
+  // Stereographic projection
+  showStereo: boolean;
+  stereoSize: number;
+  stereoFont: number;
+  showZones: boolean;
+  zoneLineW: number;
+  // Miller indices
+  millerMode: 'off' | 'main' | 'all';
+  miller3dFont: number;
+  // Self-rotation
+  selfRot: number;
 }
 
 const INITIAL: FIMState = {
@@ -57,6 +70,8 @@ const INITIAL: FIMState = {
   colormap: 'jet',
   threshold: 8,
   showDim: false,
+  bulkOpacity: 100,
+  bulkColor: '#000000',
   lightAz: 45,
   lightEl: 45,
   ambient: 40,
@@ -67,6 +82,14 @@ const INITIAL: FIMState = {
   microBright: 1.2,
   microContrast: 1.5,
   spotSize: 1.0,
+  showStereo: false,
+  stereoSize: 30,
+  stereoFont: 7,
+  showZones: true,
+  zoneLineW: 0.7,
+  millerMode: 'off',
+  miller3dFont: 10,
+  selfRot: 0,
 };
 
 interface FIMSimulatorProps {
@@ -226,11 +249,16 @@ export default function FIMSimulator({
       if (tab === '3d') {
         renderTip3D(
           ctx, W, H, atoms, coords, fields,
-          mat.lat, st.apexR, st.shankLenMul,
+          mat.lat, st.apexR, st.shankDeg, st.shankLenMul,
           viewQRef.current.mat(), zoomRef.current,
           panRef.current.x, panRef.current.y,
           st.colormap, st.threshold, st.showDim,
+          st.bulkOpacity, st.bulkColor,
           st.lightAz, st.lightEl, st.ambient / 100, st.atomSize,
+          st.selfRot,
+          st.millerMode, st.miller3dFont,
+          st.showStereo, st.stereoSize, st.stereoFont,
+          st.showZones, st.zoneLineW,
         );
       } else {
         renderMicrograph(
@@ -277,24 +305,35 @@ export default function FIMSimulator({
         </Panel>
 
         <Panel title="Tip Geometry">
-          <SliderControl label="Apex radius" value={s.apexR} min={5} max={80} step={1} unit=" d_nn" onChange={(v) => update({ apexR: v })} />
-          <SliderControl label="Shank angle" value={s.shankDeg} min={1} max={20} step={0.5} unit="°" onChange={(v) => update({ shankDeg: v })} />
-          <SliderControl label="Shank length" value={s.shankLenMul} min={1} max={5} step={0.1} unit="×R" onChange={(v) => update({ shankLenMul: v })} />
+          <SliderControl label="Apex radius" value={s.apexR} min={1} max={150} step={1} unit=" d_nn" onChange={(v) => update({ apexR: v })} />
+          <SliderControl label="Shank angle" value={s.shankDeg} min={0.5} max={30} step={0.1} unit="°" onChange={(v) => update({ shankDeg: v })} />
+          <SliderControl label="Shank length" value={s.shankLenMul} min={0.5} max={20} step={0.1} unit="×R" onChange={(v) => update({ shankLenMul: v })} />
           <SliderControl label="Wulff faceting" value={s.wulffFrac} min={0} max={1} step={0.05} unit="" onChange={(v) => update({ wulffFrac: v })} />
         </Panel>
 
         <Panel title="Crystal Orientation">
-          <div className="flex gap-2">
-            {(['poleH', 'poleK', 'poleL'] as const).map((key, i) => (
-              <div key={key}>
-                <label className="text-[9px] text-[var(--color-text-muted)] block mb-1">{['h', 'k', 'l'][i]}</label>
-                <input type="number" value={s[key]} onChange={(e) => update({ [key]: +e.target.value })} />
-              </div>
-            ))}
-          </div>
+          <SelectControl
+            label="Central pole"
+            value={`${s.poleH}${s.poleK}${s.poleL}`}
+            options={[
+              { label: '(001)', value: '001' },
+              { label: '(011)', value: '011' },
+              { label: '(111)', value: '111' },
+              { label: '(112)', value: '112' },
+              { label: '(113)', value: '113' },
+              { label: '(012)', value: '012' },
+              { label: '(102)', value: '102' },
+              { label: '(013)', value: '013' },
+            ]}
+            onChange={(v) => {
+              const h = parseInt(v[0]), k = parseInt(v[1]), l = parseInt(v[2]);
+              update({ poleH: h, poleK: k, poleL: l });
+            }}
+          />
           <div className="grid grid-cols-4 gap-1 mt-2">
             {[
-              [0,0,1], [0,1,1], [1,1,1], [0,1,2],
+              [0,0,1], [0,1,1], [1,1,1], [1,1,2],
+              [0,1,2], [1,0,2], [1,1,0], [1,-1,0],
             ].map(([h, k, l]) => (
               <button
                 key={`${h}${k}${l}`}
@@ -312,11 +351,62 @@ export default function FIMSimulator({
         </Panel>
 
         <Panel title="Electric Field">
-          <SliderControl label="Voltage" value={s.voltage} min={500} max={20000} step={100} unit=" V" onChange={(v) => update({ voltage: v })} />
-          <SliderControl label="Alpha (coord. enhancement)" value={s.alpha} min={0} max={2} step={0.05} unit="" onChange={(v) => update({ alpha: v })} />
-          <SliderControl label="Probe height" value={s.probeHeight} min={0} max={2} step={0.05} unit=" d_nn" onChange={(v) => update({ probeHeight: v })} />
-          <SliderControl label="Field exponent" value={s.fieldExp} min={0.5} max={4} step={0.1} unit="" onChange={(v) => update({ fieldExp: v })} />
-          <SliderControl label="Screen distance" value={s.screenDist} min={10} max={10000} step={10} unit=" nm" onChange={(v) => update({ screenDist: v })} />
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <SliderControl label="Voltage" value={s.voltage} min={100} max={25000} step={50} unit=" V" onChange={(v) => update({ voltage: v })} />
+            </div>
+            <button
+              onClick={() => {
+                const mat = MAT[s.matKey];
+                if (!mat) return;
+                const cfg = LAT[mat.lat];
+                const dnn = cfg.dnn(mat.a) / 10; // Å to nm
+                const Rnm = s.apexR * dnn;
+                const screenDistNm = Math.exp((s.screenDist / 1000) * Math.log(1000));
+                const KF_eff = Math.log(2 * screenDistNm / Rnm + 1);
+                const V = Math.round(mat.BIF * KF_eff * Rnm);
+                update({ voltage: Math.min(25000, V) });
+              }}
+              className="px-3 py-2 text-[10px] font-bold rounded border border-[var(--color-accent-green)] text-[var(--color-accent-green)] hover:bg-[var(--color-accent-green)]/10 transition-all mb-1"
+            >
+              Auto BIF
+            </button>
+          </div>
+          <SliderControl label="Alpha (coord. enhancement)" value={s.alpha} min={0.5} max={3} step={0.1} unit="" onChange={(v) => update({ alpha: v })} />
+          <SliderControl label="Probe height" value={s.probeHeight} min={0.1} max={3} step={0.1} unit=" d_nn" onChange={(v) => update({ probeHeight: v })} />
+          <SliderControl label="Field exponent" value={s.fieldExp} min={0.15} max={3} step={0.05} unit="" onChange={(v) => update({ fieldExp: v })} />
+          <SliderControl label="Screen distance" value={s.screenDist} min={0} max={1000} step={1} unit="" onChange={(v) => update({ screenDist: v })} />
+        </Panel>
+
+        <Panel title="View & Rotation">
+          <SliderControl label="Self-rotation" value={s.selfRot} min={-180} max={180} step={1} unit="°" onChange={(v) => update({ selfRot: v })} />
+          <SelectControl
+            label="Miller indices"
+            value={s.millerMode}
+            options={[
+              { label: 'Off', value: 'off' },
+              { label: 'Principal poles', value: 'main' },
+              { label: 'All poles (incl. negative)', value: 'all' },
+            ]}
+            onChange={(v) => update({ millerMode: v as 'off' | 'main' | 'all' })}
+          />
+          {s.millerMode !== 'off' && (
+            <SliderControl label="3D label size" value={s.miller3dFont} min={5} max={24} step={1} unit=" px" onChange={(v) => update({ miller3dFont: v })} />
+          )}
+        </Panel>
+
+        <Panel title="Stereographic Projection">
+          <ToggleSwitch label="Show projection" checked={s.showStereo} onChange={(v) => update({ showStereo: v })} />
+          {s.showStereo && (
+            <>
+              <SliderControl label="Projection size" value={s.stereoSize} min={0} max={100} step={1} unit="%" onChange={(v) => update({ stereoSize: v })} />
+              <SliderControl label="Label size" value={s.stereoFont} min={4} max={20} step={1} unit=" px" onChange={(v) => update({ stereoFont: v })} />
+              <ToggleSwitch label="Show zone lines [uvw]" checked={s.showZones} onChange={(v) => update({ showZones: v })} />
+              {s.showZones && (
+                <SliderControl label="Zone line width" value={s.zoneLineW} min={0.1} max={4} step={0.1} unit=" px" onChange={(v) => update({ zoneLineW: v })} />
+              )}
+            </>
+          )}
         </Panel>
 
         <Panel title="Display">
@@ -337,6 +427,20 @@ export default function FIMSimulator({
           />
           <SliderControl label="Atom size" value={s.atomSize} min={20} max={200} step={5} unit="%" onChange={(v) => update({ atomSize: v })} />
           <ToggleSwitch label="Show bulk atoms" checked={s.showDim} onChange={(v) => update({ showDim: v })} />
+          {s.showDim && (
+            <>
+              <SliderControl label="Bulk opacity" value={s.bulkOpacity} min={1} max={100} step={1} unit="%" onChange={(v) => update({ bulkOpacity: v })} />
+              <div className="flex gap-2 items-center">
+                <label className="text-[10px] text-[var(--color-text-muted)]">Bulk color:</label>
+                <input
+                  type="color"
+                  value={s.bulkColor}
+                  onChange={(e) => update({ bulkColor: e.target.value })}
+                  className="w-10 h-8 rounded cursor-pointer"
+                />
+              </div>
+            </>
+          )}
           <SliderControl label="Light azimuth" value={s.lightAz} min={0} max={360} step={5} unit="°" onChange={(v) => update({ lightAz: v })} />
           <SliderControl label="Light elevation" value={s.lightEl} min={0} max={90} step={5} unit="°" onChange={(v) => update({ lightEl: v })} />
           <SliderControl label="Ambient" value={s.ambient} min={0} max={100} step={5} unit="%" onChange={(v) => update({ ambient: v })} />

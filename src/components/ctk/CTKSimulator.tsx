@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import {
   CTK_GASES,
   GAS_KEYS,
@@ -12,6 +13,9 @@ import { runSimulation, type SimResult } from './CTKEngine';
 import TabBar from '@/components/shared/TabBar';
 import Panel from '@/components/shared/Panel';
 import RelatedTools from '@/components/shared/RelatedTools';
+
+// Dynamic import for 3D component
+const CTK3DView = dynamic(() => import('./CTK3DView'), { ssr: false });
 import { CTK_TO_VDW } from '@/lib/connections';
 import { CHART_LIGHT } from '@/lib/chart-theme';
 import {
@@ -31,6 +35,7 @@ const TABS = [
   { id: 'panel', label: 'Gas Panel' },
   { id: 'params', label: 'Parameters' },
   { id: 'results', label: 'Results' },
+  { id: 'cfd', label: '3D CFD' },
 ];
 
 interface Props { initialGasA?: string; }
@@ -426,6 +431,13 @@ export default function CTKSimulator({ initialGasA }: Props = {}) {
                 Run the simulation to see results
               </div>
             )}
+          </div>
+        )}
+
+        {/* 3D CFD */}
+        {tab === 'cfd' && (
+          <div className="h-full flex flex-col">
+            <CTK3DView params={params} mixA={mixA} mixB={mixB} />
           </div>
         )}
       </div>

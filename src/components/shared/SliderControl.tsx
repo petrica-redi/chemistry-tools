@@ -33,24 +33,25 @@ export default function SliderControl({
     if (!inputRef.current) return;
     const pct = ((value - min) / (max - min)) * 100;
     inputRef.current.style.setProperty('--slider-pct', `${pct}%`);
-    inputRef.current.style.background = `linear-gradient(to right, ${color} 0%, ${color} ${pct}%, #e2e8f0 ${pct}%, #e2e8f0 100%)`;
+    inputRef.current.style.background = `linear-gradient(to right, ${color} 0%, ${color} ${pct}%, #2a3555 ${pct}%, #2a3555 100%)`;
   }, [value, min, max, color]);
 
   return (
     <div className="mb-3.5">
-      <div className="flex justify-between items-center mb-1.5">
+      <div className="flex justify-between items-center mb-2">
         <label className="text-[11px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>
           {label}
         </label>
         <span
-          className="font-mono text-[11px] font-bold px-1.5 py-0.5 rounded-md"
+          className="font-mono text-[11px] font-bold px-2 py-1 rounded-[8px] transition-all duration-300"
           style={{
-            color,
-            background: `color-mix(in srgb, ${color} 12%, transparent)`,
-            border: `1px solid color-mix(in srgb, ${color} 20%, transparent)`,
+            color: '#fff',
+            background: `linear-gradient(135deg, ${color} 0%, ${color}cc 100%)`,
+            border: `1px solid ${color}`,
+            boxShadow: `0 0 8px ${color}40`,
           }}
         >
-          {displayValue}{unit && <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>{unit}</span>}
+          {displayValue}{unit && <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 400 }}>{unit}</span>}
         </span>
       </div>
       <input

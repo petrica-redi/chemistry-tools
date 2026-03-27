@@ -36,6 +36,7 @@ interface State3D {
   showRealPhase: boolean;
   showSupercritical: boolean;
   showPVprojection: boolean;
+  showSources: boolean;
 }
 
 const DEFAULT_3D: State3D = {
@@ -50,6 +51,7 @@ const DEFAULT_3D: State3D = {
   showRealPhase: false,
   showSupercritical: false,
   showPVprojection: false,
+  showSources: false,
 };
 
 export default function VdW3DPanel({ gas, gasId, onGasChange }: Props) {
@@ -418,6 +420,35 @@ export default function VdW3DPanel({ gas, gasId, onGasChange }: Props) {
             Recalculate
           </button>
         </Panel>
+
+        <div className="border-t border-[var(--color-border)] pt-3">
+          <button
+            onClick={() => update({ showSources: !s.showSources })}
+            className="w-full text-left text-[12px] font-semibold py-2 px-3 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent-blue)] hover:text-[var(--color-accent-blue)] transition flex items-center justify-between"
+          >
+            <span>Sources & References</span>
+            <span className={`transform transition-transform ${s.showSources ? 'rotate-180' : ''}`}>▼</span>
+          </button>
+          {s.showSources && (
+            <div className="mt-3 p-3 rounded-lg bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[10px] leading-relaxed text-[var(--color-text-muted)] space-y-2">
+              <div>
+                <strong className="text-[var(--color-text-secondary)]">Critical & Triple Points:</strong>
+                <div className="text-[9px] mt-1">
+                  — NIST Chemistry WebBook (webbook.nist.gov)<br />
+                  — Young, H.D., <em>Univ. Physics</em>, 8th Ed., Tab. 16-3<br />
+                  — HyperPhysics, Georgia State University
+                </div>
+              </div>
+              <div>
+                <strong className="text-[var(--color-text-secondary)]">Van der Waals Parameters:</strong>
+                <div className="text-[9px] mt-1">
+                  — Atkins, P.W., <em>Physical Chemistry</em>, 10th Ed.<br />
+                  — Poling, B.E. et al., <em>Properties of Gases & Liquids</em>, 5th Ed., McGraw-Hill, 2000
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       <div className="flex-1 flex flex-col min-w-0 bg-[var(--color-bg-secondary)]">
         <div

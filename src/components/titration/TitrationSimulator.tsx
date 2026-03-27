@@ -18,6 +18,7 @@ export interface TitrationState {
   showPkaLines: boolean;
   showMarkers: boolean;
   showHH: boolean;
+  showAdvanced: boolean;
 }
 
 const INITIAL_STATE: TitrationState = {
@@ -31,6 +32,7 @@ const INITIAL_STATE: TitrationState = {
   showPkaLines: true,
   showMarkers: true,
   showHH: false,
+  showAdvanced: false,
 };
 
 export default function TitrationSimulator() {

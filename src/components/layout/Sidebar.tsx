@@ -19,25 +19,32 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="w-[260px] min-w-[260px] h-screen flex flex-col overflow-y-auto border-r bg-white shadow-[4px_0_24px_rgba(15,23,42,0.04)]"
-      style={{ borderColor: 'var(--color-border)' }}
+      className="w-[260px] min-w-[260px] h-screen flex flex-col overflow-y-auto border-r"
+      style={{
+        background: 'linear-gradient(180deg, #0f1428 0%, #1a0f2e 100%)',
+        borderColor: 'var(--color-border)',
+        boxShadow: '4px 0 32px rgba(255, 46, 99, 0.08), 4px 0 64px rgba(0, 217, 255, 0.04)',
+      }}
     >
       <Link
         href="/"
-        className={`group px-5 pt-7 pb-6 block border-b transition-colors rounded-br-2xl ${
-          isHome ? 'bg-[var(--color-bg-tertiary)]' : 'hover:bg-slate-50/80'
+        className={`group px-5 pt-7 pb-6 block border-b rounded-br-2xl transition-all ${
+          isHome ? '' : 'hover:bg-[var(--color-bg-tertiary)]/40'
         }`}
-        style={{ borderColor: 'var(--color-border)' }}
+        style={{
+          borderColor: 'var(--color-border)',
+          background: isHome ? 'linear-gradient(135deg, rgba(255, 46, 99, 0.08) 0%, rgba(0, 217, 255, 0.05) 100%)' : 'transparent',
+        }}
         aria-current={isHome ? 'page' : undefined}
       >
         <div className="flex items-center gap-3">
           <div
-            className="w-10 h-10 rounded-2xl flex items-center justify-center text-lg shrink-0 text-white font-bold ring-offset-2 transition-shadow"
+            className="w-10 h-10 rounded-2xl flex items-center justify-center text-lg shrink-0 text-white font-bold ring-offset-2 transition-all duration-300"
             style={{
-              background: 'linear-gradient(145deg, #b91c1c 0%, #7f1d1d 100%)',
+              background: 'linear-gradient(145deg, #ff2e63 0%, #b344ff 100%)',
               boxShadow: isHome
-                ? '0 4px 14px rgba(185, 28, 28, 0.45), 0 0 0 2px rgba(185, 28, 28, 0.25)'
-                : '0 4px 14px rgba(185, 28, 28, 0.35)',
+                ? '0 0 16px rgba(255, 46, 99, 0.5), 0 4px 14px rgba(179, 68, 255, 0.3)'
+                : '0 0 12px rgba(255, 46, 99, 0.3), 0 4px 14px rgba(179, 68, 255, 0.15)',
             }}
           >
             ⚗
@@ -70,32 +77,29 @@ export default function Sidebar() {
               href={tool.href}
               aria-current={isActive ? 'page' : undefined}
               className={[
-                'group relative flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all duration-200',
+                'group relative flex items-center gap-3 px-3 py-2.5 rounded-[16px] transition-all duration-300',
                 isActive
-                  ? 'text-white shadow-md'
-                  : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)]',
+                  ? 'text-white'
+                  : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)]/40 hover:translate-x-1',
               ].join(' ')}
               style={
                 isActive
                   ? {
-                      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-                      boxShadow: '0 4px 16px rgba(15, 23, 42, 0.2)',
+                      background: `linear-gradient(135deg, ${accentColor}15 0%, ${accentColor}08 100%)`,
+                      boxShadow: `0 0 16px ${accentColor}22, 0 4px 16px ${accentColor}18`,
+                      borderLeft: `3px solid ${accentColor}`,
+                      paddingLeft: 'calc(12px - 3px)',
                     }
                   : undefined
               }
             >
-              {isActive && (
-                <span
-                  className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-7 rounded-full"
-                  style={{ background: accentColor }}
-                />
-              )}
 
               <span
-                className="text-lg w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors"
+                className="text-lg w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300"
                 style={{
-                  background: isActive ? 'rgba(255,255,255,0.12)' : 'var(--color-bg-tertiary)',
-                  border: isActive ? '1px solid rgba(255,255,255,0.1)' : '1px solid var(--color-border)',
+                  background: isActive ? `${accentColor}22` : 'var(--color-bg-tertiary)',
+                  border: isActive ? `1.5px solid ${accentColor}` : '1px solid var(--color-border)',
+                  boxShadow: isActive ? `0 0 8px ${accentColor}30` : 'none',
                 }}
               >
                 {tool.icon}
@@ -125,10 +129,11 @@ export default function Sidebar() {
       </nav>
 
       <div
-        className="mx-4 mb-5 rounded-2xl px-4 py-3 text-center border"
+        className="mx-4 mb-5 rounded-[16px] px-4 py-3 text-center border backdrop-blur-sm"
         style={{
-          background: 'var(--color-brand-muted)',
-          borderColor: 'rgba(185, 28, 28, 0.15)',
+          background: 'linear-gradient(135deg, rgba(255, 46, 99, 0.1) 0%, rgba(0, 217, 255, 0.05) 100%)',
+          borderColor: 'rgba(255, 46, 99, 0.25)',
+          boxShadow: '0 0 16px rgba(255, 46, 99, 0.08), inset 0 0 16px rgba(0, 217, 255, 0.05)',
         }}
       >
         <p className="text-[11px] font-medium text-[var(--color-text-secondary)] leading-snug">
