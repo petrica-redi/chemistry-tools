@@ -42,19 +42,19 @@ export default function RelatedTools({ toolId, links = {} }: RelatedToolsProps) 
             href={href}
             className="group block rounded-xl p-3 transition-all duration-150"
             style={{
-              background: `color-mix(in srgb, ${conn.accent} 6%, rgba(255,255,255,0.02))`,
-              border: `1px solid color-mix(in srgb, ${conn.accent} 18%, rgba(255,255,255,0.06))`,
+              background: `color-mix(in srgb, ${conn.accent} 7%, #ffffff)`,
+              border: `1px solid color-mix(in srgb, ${conn.accent} 22%, var(--color-border))`,
             }}
             onMouseEnter={(e) => {
               const el = e.currentTarget as HTMLElement;
-              el.style.background = `color-mix(in srgb, ${conn.accent} 12%, rgba(255,255,255,0.03))`;
-              el.style.borderColor = `color-mix(in srgb, ${conn.accent} 40%, rgba(255,255,255,0.08))`;
-              el.style.boxShadow = `0 4px 16px color-mix(in srgb, ${conn.accent} 15%, transparent)`;
+              el.style.background = `color-mix(in srgb, ${conn.accent} 12%, #ffffff)`;
+              el.style.borderColor = `color-mix(in srgb, ${conn.accent} 35%, var(--color-border))`;
+              el.style.boxShadow = `0 4px 14px color-mix(in srgb, ${conn.accent} 12%, transparent)`;
             }}
             onMouseLeave={(e) => {
               const el = e.currentTarget as HTMLElement;
-              el.style.background = `color-mix(in srgb, ${conn.accent} 6%, rgba(255,255,255,0.02))`;
-              el.style.borderColor = `color-mix(in srgb, ${conn.accent} 18%, rgba(255,255,255,0.06))`;
+              el.style.background = `color-mix(in srgb, ${conn.accent} 7%, #ffffff)`;
+              el.style.borderColor = `color-mix(in srgb, ${conn.accent} 22%, var(--color-border))`;
               el.style.boxShadow = 'none';
             }}
           >

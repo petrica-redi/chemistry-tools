@@ -49,8 +49,8 @@ export default function VdWSimulator({ initialGasId }: Props = {}) {
         </div>
         {/* Connection panel on the right */}
         <div
-          className="w-[200px] min-w-[200px] overflow-y-auto p-3 border-l"
-          style={{ borderColor: 'rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.01)' }}
+          className="w-[200px] min-w-[200px] overflow-y-auto p-3 border-l bg-[var(--color-bg-tertiary)]"
+          style={{ borderColor: 'var(--color-border)' }}
         >
           <RelatedTools
             toolId="vdw"

@@ -22,7 +22,7 @@ export default function SliderControl({
   step = 1,
   unit = '',
   onChange,
-  color = 'var(--color-accent-blue)',
+  color = 'var(--color-brand)',
   formatValue,
 }: SliderControlProps) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -33,7 +33,7 @@ export default function SliderControl({
     if (!inputRef.current) return;
     const pct = ((value - min) / (max - min)) * 100;
     inputRef.current.style.setProperty('--slider-pct', `${pct}%`);
-    inputRef.current.style.background = `linear-gradient(to right, ${color} 0%, ${color} ${pct}%, rgba(255,255,255,0.08) ${pct}%, rgba(255,255,255,0.08) 100%)`;
+    inputRef.current.style.background = `linear-gradient(to right, ${color} 0%, ${color} ${pct}%, #e2e8f0 ${pct}%, #e2e8f0 100%)`;
   }, [value, min, max, color]);
 
   return (

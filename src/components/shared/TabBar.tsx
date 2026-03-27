@@ -9,11 +9,11 @@ interface TabBarProps {
   accent?: string;
 }
 
-export default function TabBar({ tabs, activeTab, onChange, accent = 'var(--color-accent-blue)' }: TabBarProps) {
+export default function TabBar({ tabs, activeTab, onChange, accent = 'var(--color-brand)' }: TabBarProps) {
   return (
     <div
       className="flex gap-1 p-1 rounded-xl w-fit"
-      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+      style={{ background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border)' }}
     >
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
@@ -23,10 +23,10 @@ export default function TabBar({ tabs, activeTab, onChange, accent = 'var(--colo
             onClick={() => onChange(tab.id)}
             className="px-4 py-1.5 rounded-lg text-[11.5px] font-semibold font-mono tracking-wide transition-all duration-150"
             style={{
-              background: isActive ? 'rgba(255,255,255,0.08)' : 'transparent',
+              background: isActive ? '#fff' : 'transparent',
               color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
-              boxShadow: isActive ? `0 0 12px color-mix(in srgb, ${accent} 30%, transparent)` : 'none',
-              border: isActive ? `1px solid rgba(255,255,255,0.1)` : '1px solid transparent',
+              boxShadow: isActive ? '0 1px 3px rgba(15, 23, 42, 0.08)' : 'none',
+              border: isActive ? `1px solid var(--color-border)` : '1px solid transparent',
             }}
           >
             {tab.label}

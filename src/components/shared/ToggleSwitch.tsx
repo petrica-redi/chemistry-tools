@@ -11,7 +11,7 @@ export default function ToggleSwitch({
   label,
   checked,
   onChange,
-  color = 'var(--color-accent-blue)',
+  color = 'var(--color-brand)',
 }: ToggleSwitchProps) {
   return (
     <label className="flex items-center justify-between py-1.5 cursor-pointer group gap-3">
@@ -28,11 +28,11 @@ export default function ToggleSwitch({
         className="relative shrink-0 w-9 h-[18px] rounded-full transition-all duration-200 cursor-pointer"
         style={{
           background: checked
-            ? `color-mix(in srgb, ${color} 80%, #000)`
-            : 'rgba(255,255,255,0.08)',
+            ? `color-mix(in srgb, ${color} 85%, #450a0a)`
+            : '#e2e8f0',
           border: checked
-            ? `1px solid color-mix(in srgb, ${color} 60%, transparent)`
-            : '1px solid rgba(255,255,255,0.12)',
+            ? `1px solid color-mix(in srgb, ${color} 50%, transparent)`
+            : '1px solid var(--color-border)',
           boxShadow: checked ? `0 0 10px color-mix(in srgb, ${color} 40%, transparent)` : 'none',
         }}
         onClick={() => onChange(!checked)}

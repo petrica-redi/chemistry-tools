@@ -18,118 +18,111 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="w-[240px] min-w-[240px] h-screen flex flex-col overflow-y-auto"
-      style={{
-        background: 'rgba(6, 10, 20, 0.85)',
-        backdropFilter: 'blur(20px) saturate(1.5)',
-        WebkitBackdropFilter: 'blur(20px) saturate(1.5)',
-        borderRight: '1px solid rgba(255,255,255,0.06)',
-      }}
+      className="w-[260px] min-w-[260px] h-screen flex flex-col overflow-y-auto border-r bg-white shadow-[4px_0_24px_rgba(15,23,42,0.04)]"
+      style={{ borderColor: 'var(--color-border)' }}
     >
-      {/* Logo */}
-      <Link href="/" className="group px-5 pt-6 pb-5 block">
-        <div className="flex items-center gap-3 mb-1">
+      <Link href="/" className="group px-5 pt-7 pb-6 block border-b" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="flex items-center gap-3">
           <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0"
+            className="w-10 h-10 rounded-2xl flex items-center justify-center text-lg shrink-0 text-white font-bold"
             style={{
-              background: 'linear-gradient(135deg, var(--color-accent-blue), var(--color-accent-cyan))',
-              boxShadow: '0 0 16px rgba(79,142,247,0.4)',
+              background: 'linear-gradient(145deg, #b91c1c 0%, #7f1d1d 100%)',
+              boxShadow: '0 4px 14px rgba(185, 28, 28, 0.35)',
             }}
           >
             ⚗
           </div>
-          <span
-            className="text-[13px] font-bold tracking-tight"
-            style={{
-              background: 'linear-gradient(90deg, #fff 0%, var(--color-text-secondary) 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            Chemistry Tools
-          </span>
+          <div>
+            <span className="text-[15px] font-extrabold tracking-tight text-[var(--color-text-primary)] block leading-tight">
+              Chemistry Tools
+            </span>
+            <p className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--color-text-muted)] mt-0.5">
+              Simulation platform
+            </p>
+          </div>
         </div>
-        <p className="text-[10px] font-mono tracking-widest uppercase ml-10" style={{ color: 'var(--color-text-muted)' }}>
-          Simulation Platform
-        </p>
       </Link>
 
-      {/* Divider */}
-      <div className="mx-4 mb-3 h-px" style={{ background: 'rgba(255,255,255,0.05)' }} />
-
-      {/* Nav label */}
-      <div className="px-5 pb-1.5 text-[9px] font-bold tracking-[0.2em] uppercase" style={{ color: 'var(--color-text-muted)' }}>
-        Tools
+      <div className="px-4 pt-5 pb-2">
+        <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[var(--color-text-muted)] px-2">
+          Simulators
+        </p>
       </div>
 
-      {/* Nav items */}
-      <nav className="flex-1 px-2 flex flex-col gap-0.5">
+      <nav className="flex-1 px-3 flex flex-col gap-1 pb-4">
         {TOOLS.map((tool) => {
           const isActive = pathname === tool.href;
-          const accentColor = TOOL_COLORS[tool.id] || 'var(--color-accent-blue)';
+          const accentColor = TOOL_COLORS[tool.id] || 'var(--color-brand)';
 
           return (
             <Link
               key={tool.id}
               href={tool.href}
-              className="relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150"
-              style={{
-                background: isActive ? 'rgba(255,255,255,0.06)' : 'transparent',
-                color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)';
-                  (e.currentTarget as HTMLElement).style.color = 'var(--color-text-primary)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  (e.currentTarget as HTMLElement).style.background = 'transparent';
-                  (e.currentTarget as HTMLElement).style.color = 'var(--color-text-secondary)';
-                }
-              }}
+              className={[
+                'group relative flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all duration-200',
+                isActive
+                  ? 'text-white shadow-md'
+                  : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)]',
+              ].join(' ')}
+              style={
+                isActive
+                  ? {
+                      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+                      boxShadow: '0 4px 16px rgba(15, 23, 42, 0.2)',
+                    }
+                  : undefined
+              }
             >
-              {/* Active indicator bar */}
               {isActive && (
                 <span
-                  className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-full"
-                  style={{ background: accentColor, boxShadow: `0 0 8px ${accentColor}` }}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-7 rounded-full"
+                  style={{ background: accentColor }}
                 />
               )}
 
-              {/* Icon badge */}
               <span
-                className="text-base w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-sm transition-all"
+                className="text-lg w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors"
                 style={{
-                  background: isActive ? `color-mix(in srgb, ${accentColor} 15%, transparent)` : 'rgba(255,255,255,0.04)',
-                  border: isActive ? `1px solid color-mix(in srgb, ${accentColor} 30%, transparent)` : '1px solid rgba(255,255,255,0.05)',
+                  background: isActive ? 'rgba(255,255,255,0.12)' : 'var(--color-bg-tertiary)',
+                  border: isActive ? '1px solid rgba(255,255,255,0.1)' : '1px solid var(--color-border)',
                 }}
               >
                 {tool.icon}
               </span>
 
               <div className="flex-1 min-w-0">
-                <div className="text-[12.5px] font-semibold truncate leading-tight">
+                <div className="text-[13px] font-semibold truncate leading-tight">
                   {tool.shortName}
                 </div>
-                <div className="text-[10px] truncate mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
-                  {tool.tags[0]}
+                <div className={`text-[10px] truncate mt-0.5 ${isActive ? 'text-slate-400' : ''}`} style={!isActive ? { color: 'var(--color-text-muted)' } : undefined}>
+                  {tool.tags.slice(0, 2).join(' · ')}
                 </div>
               </div>
+
+              <svg
+                className={`w-4 h-4 shrink-0 opacity-0 group-hover:opacity-100 ${isActive ? 'opacity-100' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
             </Link>
           );
         })}
       </nav>
 
-      {/* Footer */}
       <div
-        className="mx-4 mt-2 mb-4 rounded-xl px-3 py-2.5"
-        style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
+        className="mx-4 mb-5 rounded-2xl px-4 py-3 text-center border"
+        style={{
+          background: 'var(--color-brand-muted)',
+          borderColor: 'rgba(185, 28, 28, 0.15)',
+        }}
       >
-        <div className="text-[9px] font-mono text-center" style={{ color: 'var(--color-text-muted)' }}>
-          Built for research &amp; teaching
-        </div>
+        <p className="text-[11px] font-medium text-[var(--color-text-secondary)] leading-snug">
+          Research &amp; teaching — tools link together via shared parameters.
+        </p>
       </div>
     </aside>
   );

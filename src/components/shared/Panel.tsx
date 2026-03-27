@@ -25,8 +25,9 @@ export default function Panel({
     <div
       className={`rounded-xl overflow-hidden ${className}`}
       style={{
-        background: 'rgba(255,255,255,0.025)',
-        border: '1px solid rgba(255,255,255,0.07)',
+        background: 'var(--color-bg-secondary)',
+        border: '1px solid var(--color-border)',
+        boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
       }}
     >
       {title && (
@@ -62,7 +63,7 @@ export default function Panel({
           )}
         </button>
       )}
-      {title && <div className="mx-3.5" style={{ height: '1px', background: 'rgba(255,255,255,0.05)' }} />}
+      {title && <div className="mx-3.5" style={{ height: '1px', background: 'var(--color-border)' }} />}
       {(!collapsible || open) && (
         <div className="px-3.5 py-3">
           {children}
