@@ -15,19 +15,29 @@ const TOOL_COLORS: Record<string, string> = {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const isHome = pathname === '/';
 
   return (
     <aside
       className="w-[260px] min-w-[260px] h-screen flex flex-col overflow-y-auto border-r bg-white shadow-[4px_0_24px_rgba(15,23,42,0.04)]"
       style={{ borderColor: 'var(--color-border)' }}
     >
-      <Link href="/" className="group px-5 pt-7 pb-6 block border-b" style={{ borderColor: 'var(--color-border)' }}>
+      <Link
+        href="/"
+        className={`group px-5 pt-7 pb-6 block border-b transition-colors rounded-br-2xl ${
+          isHome ? 'bg-[var(--color-bg-tertiary)]' : 'hover:bg-slate-50/80'
+        }`}
+        style={{ borderColor: 'var(--color-border)' }}
+        aria-current={isHome ? 'page' : undefined}
+      >
         <div className="flex items-center gap-3">
           <div
-            className="w-10 h-10 rounded-2xl flex items-center justify-center text-lg shrink-0 text-white font-bold"
+            className="w-10 h-10 rounded-2xl flex items-center justify-center text-lg shrink-0 text-white font-bold ring-offset-2 transition-shadow"
             style={{
               background: 'linear-gradient(145deg, #b91c1c 0%, #7f1d1d 100%)',
-              boxShadow: '0 4px 14px rgba(185, 28, 28, 0.35)',
+              boxShadow: isHome
+                ? '0 4px 14px rgba(185, 28, 28, 0.45), 0 0 0 2px rgba(185, 28, 28, 0.25)'
+                : '0 4px 14px rgba(185, 28, 28, 0.35)',
             }}
           >
             ⚗
@@ -58,6 +68,7 @@ export default function Sidebar() {
             <Link
               key={tool.id}
               href={tool.href}
+              aria-current={isActive ? 'page' : undefined}
               className={[
                 'group relative flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all duration-200',
                 isActive

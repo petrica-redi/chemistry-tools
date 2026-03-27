@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { TOOLS } from '@/types';
 import { CONNECTIONS, TOOL_META } from '@/lib/connections';
 
@@ -23,6 +23,13 @@ const BRIDGE_PAIRS = CONNECTIONS.filter((c, i, arr) =>
   !arr.find((x) => x.from === c.to && x.to === c.from)
 ).slice(0, 4);
 
+const STATS: { label: string; value: string; sub: string; icon: string }[] = [
+  { label: 'Tools', value: '6', sub: 'simulators', icon: '⚗' },
+  { label: 'Bridges', value: String(CONNECTIONS.length), sub: 'cross-links', icon: '🔗' },
+  { label: 'Materials', value: '40+', sub: 'metals & gases', icon: '◎' },
+  { label: 'Scales', value: '3D–QM', sub: 'atom to reactor', icon: '⬡' },
+];
+
 export default function DashboardView() {
   const [spotlight, setSpotlight] = useState(0);
 
@@ -30,18 +37,41 @@ export default function DashboardView() {
 
   const activeTool = TOOLS[spotlight];
 
+  const bump = useCallback((delta: number) => {
+    setSpotlight((s) => {
+      const n = s + delta;
+      if (n < 0) return TOOLS.length - 1;
+      if (n >= TOOLS.length) return 0;
+      return n;
+    });
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        bump(1);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        bump(-1);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [bump]);
+
   return (
-    <div className="min-h-full px-6 sm:px-10 py-10 max-w-6xl mx-auto">
-      {/* Hero */}
+    <div className="page-canvas min-h-full px-6 sm:px-10 py-10 pb-16 max-w-6xl mx-auto">
       <header className="mb-10 animate-fade-up">
         <div className="flex flex-wrap items-center gap-2 mb-5">
           <span className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-wide uppercase px-3 py-1.5 rounded-full border border-[var(--color-border)] bg-white text-[var(--color-text-secondary)] shadow-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-brand)] animate-pulse" aria-hidden />
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-brand)]" aria-hidden />
             Simulate · Visualize · Connect
           </span>
         </div>
 
-        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-[var(--color-text-primary)] leading-[1.1] mb-4">
+        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-[var(--color-text-primary)] leading-[1.08] mb-4">
           Chemistry{' '}
           <span className="text-[var(--color-brand)]">simulation</span>
           <br className="sm:hidden" />
@@ -53,52 +83,54 @@ export default function DashboardView() {
           then jump to a related one without losing your parameters.
         </p>
 
-        {/* Stat cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8">
-          {[
-            { label: 'Tools', value: '6', sub: 'simulators' },
-            { label: 'Bridges', value: String(CONNECTIONS.length), sub: 'cross-links' },
-            { label: 'Materials', value: '40+', sub: 'metals & gases' },
-            { label: 'Scales', value: '3D–QM', sub: 'atom to reactor' },
-          ].map((s) => (
+          {STATS.map((s) => (
             <div
               key={s.label}
-              className="rounded-2xl border bg-white px-4 py-4 shadow-[0_1px_3px_rgba(15,23,42,0.06)]"
+              className="rounded-2xl border bg-white px-4 py-4 shadow-[0_1px_3px_rgba(15,23,42,0.06)] transition-shadow hover:shadow-md"
               style={{ borderColor: 'var(--color-border)' }}
             >
-              <div className="flex items-center gap-2 mb-1">
-                <span className="w-8 h-8 rounded-xl bg-[var(--color-brand-muted)] flex items-center justify-center text-[var(--color-brand)] text-sm font-bold">
-                  ◆
+              <div className="flex items-center gap-2 mb-2">
+                <span
+                  className="w-9 h-9 rounded-xl flex items-center justify-center text-lg bg-[var(--color-bg-tertiary)] border border-[var(--color-border)]"
+                  aria-hidden
+                >
+                  {s.icon}
                 </span>
               </div>
-              <div className="text-2xl font-extrabold text-[var(--color-text-primary)] tabular-nums">{s.value}</div>
-              <div className="text-[11px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{s.label}</div>
+              <div className="text-2xl font-extrabold text-[var(--color-text-primary)] tabular-nums tracking-tight">
+                {s.value}
+              </div>
+              <div className="text-[11px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">
+                {s.label}
+              </div>
               <div className="text-[10px] text-[var(--color-text-muted)] mt-0.5">{s.sub}</div>
             </div>
           ))}
         </div>
       </header>
 
-      {/* Spotlight control */}
       <section
         className="mb-10 rounded-3xl border bg-white p-5 sm:p-6 shadow-[0_4px_24px_rgba(15,23,42,0.06)] animate-fade-up delay-100"
         style={{ borderColor: 'var(--color-border)' }}
+        aria-labelledby="spotlight-heading"
       >
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5">
           <div>
-            <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-[var(--color-text-muted)] mb-1">
+            <h2 id="spotlight-heading" className="text-sm font-bold uppercase tracking-[0.15em] text-[var(--color-text-muted)] mb-1">
               Tool spotlight
             </h2>
             <p className="text-lg font-bold text-[var(--color-text-primary)]">
               {activeTool.name}
             </p>
             <p className="text-sm text-[var(--color-text-secondary)] mt-1 max-w-xl">
-              Drag the slider to focus a simulator — the card grid highlights your selection.
+              Use the slider, quick picks below, or <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-[11px] font-mono">←</kbd>{' '}
+              <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-[11px] font-mono">→</kbd> to focus a card in the grid.
             </p>
           </div>
           <Link
             href={activeTool.href}
-            className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-95 shrink-0"
+            className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg hover:brightness-105 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 shrink-0"
             style={{ background: 'var(--color-brand)' }}
           >
             Open {activeTool.shortName}
@@ -106,10 +138,28 @@ export default function DashboardView() {
           </Link>
         </div>
 
+        <div className="flex flex-wrap gap-2 mb-5">
+          {TOOLS.map((t, i) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setSpotlight(i)}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold border transition-all ${
+                i === spotlight
+                  ? 'border-[var(--color-brand)] bg-[var(--color-brand-muted)] text-[var(--color-brand)] shadow-sm'
+                  : 'border-[var(--color-border)] bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)] hover:border-slate-300'
+              }`}
+            >
+              <span aria-hidden>{t.icon}</span>
+              {t.shortName}
+            </button>
+          ))}
+        </div>
+
         <div className="space-y-2">
           <div className="flex justify-between text-[11px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">
-            <span>Scroll focus</span>
-            <span>
+            <span>Focus</span>
+            <span className="tabular-nums">
               {spotlight + 1} / {TOOLS.length}
             </span>
           </div>
@@ -120,19 +170,25 @@ export default function DashboardView() {
             step={1}
             value={spotlight}
             onChange={(e) => setSpotlight(Number(e.target.value))}
-            className="w-full"
+            className="w-full min-h-[44px] cursor-pointer"
             style={{ ['--slider-pct' as string]: `${pct}%` }}
-            aria-label="Highlight a simulation tool"
+            aria-valuemin={1}
+            aria-valuemax={TOOLS.length}
+            aria-valuenow={spotlight + 1}
+            aria-label="Highlight a simulation tool in the grid below"
           />
-          <div className="flex gap-1 pt-1">
+          <div className="flex gap-1.5 pt-1" role="tablist" aria-label="Tool focus segments">
             {TOOLS.map((t, i) => (
               <button
                 key={t.id}
                 type="button"
+                role="tab"
+                aria-selected={i === spotlight}
                 onClick={() => setSpotlight(i)}
-                className={`flex-1 h-1.5 rounded-full transition-all ${
+                className={`flex-1 h-2 rounded-full transition-all min-h-[8px] ${
                   i === spotlight ? 'bg-[var(--color-brand)]' : 'bg-slate-200 hover:bg-slate-300'
                 }`}
+                title={t.shortName}
                 aria-label={`Focus ${t.shortName}`}
               />
             ))}
@@ -140,7 +196,6 @@ export default function DashboardView() {
         </div>
       </section>
 
-      {/* Tool grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-14">
         {TOOLS.map((tool, i) => {
           const cfg = TOOL_CONFIG[tool.id];
@@ -150,13 +205,14 @@ export default function DashboardView() {
               key={tool.id}
               href={tool.href}
               className={`group relative rounded-3xl p-6 flex flex-col gap-3 border bg-white transition-all duration-300 animate-fade-up ${cfg.span ?? ''} ${
-                isHot ? 'shadow-lg scale-[1.02]' : 'shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:shadow-md hover:-translate-y-0.5'
+                isHot ? 'shadow-lg md:scale-[1.02]' : 'shadow-[0_1px_3px_rgba(15,23,42,0.06)] hover:shadow-md hover:-translate-y-0.5'
               }`}
               style={{
                 borderColor: isHot ? cfg.accent : 'var(--color-border)',
-                boxShadow: isHot ? `0 0 0 3px color-mix(in srgb, ${cfg.accent} 25%, transparent), 0 12px 40px rgba(15, 23, 42, 0.08)` : undefined,
+                boxShadow: isHot ? `0 0 0 3px color-mix(in srgb, ${cfg.accent} 22%, transparent), 0 12px 40px rgba(15, 23, 42, 0.08)` : undefined,
                 animationDelay: `${80 + i * 50}ms`,
               }}
+              onMouseEnter={() => setSpotlight(i)}
             >
               <div className="flex items-start justify-between gap-3">
                 <span
@@ -197,17 +253,16 @@ export default function DashboardView() {
         })}
       </div>
 
-      {/* Connections */}
-      <section className="animate-fade-up delay-400">
+      <section className="animate-fade-up delay-400" aria-labelledby="bridges-heading">
         <div className="flex items-center gap-4 mb-6">
           <div className="flex-1 h-px bg-[var(--color-border)]" />
-          <span className="text-xs font-extrabold tracking-[0.2em] uppercase text-[var(--color-text-muted)] whitespace-nowrap">
+          <h2 id="bridges-heading" className="text-xs font-extrabold tracking-[0.2em] uppercase text-[var(--color-text-muted)] whitespace-nowrap">
             How tools connect
-          </span>
+          </h2>
           <div className="flex-1 h-px bg-[var(--color-border)]" />
         </div>
 
-        <p className="text-sm text-center mb-8 max-w-2xl mx-auto text-[var(--color-text-secondary)]">
+        <p className="text-sm text-center mb-8 max-w-2xl mx-auto text-[var(--color-text-secondary)] leading-relaxed">
           Each bridge carries scientific context — FIM poles match Miller planes; reactor gases map to real-gas VdW data;
           orbitals explain ionization fields on tips.
         </p>
@@ -220,16 +275,16 @@ export default function DashboardView() {
             return (
               <div
                 key={`${conn.from}-${conn.to}`}
-                className="rounded-3xl border bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.06)]"
-                style={{ borderColor: 'var(--color-border)' }}
+                className="rounded-3xl border bg-white p-5 pl-6 shadow-[0_1px_3px_rgba(15,23,42,0.06)] border-l-[4px]"
+                style={{ borderColor: 'var(--color-border)', borderLeftColor: conn.accent }}
               >
                 <div className="flex flex-wrap items-center gap-2 mb-3">
                   <Link
                     href={fromMeta.href}
-                    className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold border bg-slate-50 hover:bg-slate-100 transition-colors"
+                    className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold border bg-slate-50 hover:bg-slate-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2"
                     style={{ borderColor: 'var(--color-border)', color: conn.accent }}
                   >
-                    <span>{fromMeta.icon}</span>
+                    <span aria-hidden>{fromMeta.icon}</span>
                     {fromMeta.label}
                   </Link>
 
@@ -239,6 +294,7 @@ export default function DashboardView() {
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                     strokeWidth={2}
+                    aria-hidden
                   >
                     <path
                       strokeLinecap="round"
@@ -249,9 +305,9 @@ export default function DashboardView() {
 
                   <Link
                     href={toMeta.href}
-                    className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+                    className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2"
                   >
-                    <span>{toMeta.icon}</span>
+                    <span aria-hidden>{toMeta.icon}</span>
                     {toMeta.label}
                   </Link>
                 </div>
@@ -264,6 +320,12 @@ export default function DashboardView() {
           })}
         </div>
       </section>
+
+      <footer className="mt-16 pt-8 border-t border-[var(--color-border)] text-center">
+        <p className="text-[12px] text-[var(--color-text-muted)]">
+          Scientific simulators for research and teaching — no login required.
+        </p>
+      </footer>
     </div>
   );
 }

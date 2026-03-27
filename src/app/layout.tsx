@@ -34,7 +34,7 @@ export default function RootLayout({
     <html lang="en" className={`${plusJakarta.variable} ${jetbrainsMono.variable}`}>
       <body className="flex h-screen overflow-hidden antialiased">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto bg-[var(--color-bg-primary)]">{children}</main>
+        <main className="flex-1 overflow-y-auto bg-[var(--color-bg-primary)] scroll-smooth">{children}</main>
       </body>
     </html>
   );
