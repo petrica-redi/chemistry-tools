@@ -13,6 +13,7 @@ import SelectControl from '@/components/shared/SelectControl';
 import ToggleSwitch from '@/components/shared/ToggleSwitch';
 import TabBar from '@/components/shared/TabBar';
 import RelatedTools from '@/components/shared/RelatedTools';
+import EducationPanel, { FormulaBlock, DefTerm } from '@/components/shared/EducationPanel';
 import { SYMBOL_TO_Z } from '@/lib/connections';
 
 interface FIMState {
@@ -776,6 +777,79 @@ export default function FIMSimulator({
             </div>
           </div>
         </Panel>
+
+        <EducationPanel title="FIM Theory" icon="📖">
+          <p className="mb-2">
+            <b>Field Ion Microscopy (FIM)</b> produces atomic-resolution images of a sharp metal tip
+            by field-ionizing an imaging gas (He, Ne) near protruding surface atoms. It was invented by
+            Erwin Müller in 1951 — the first technique to resolve individual atoms.
+          </p>
+          <FormulaBlock label="Best Image Field (BIF)">
+            F<sub>BIF</sub> — the electric field at which the ionization rate of the imaging gas
+            is optimal for a given metal surface. Typical: 20–57 V/nm.
+          </FormulaBlock>
+          <FormulaBlock label="Field at Tip Apex">
+            <div>F = V / (k<sub>f</sub> · r<sub>tip</sub>)</div>
+            <div className="text-[9px] text-[var(--color-text-muted)] mt-1">
+              V = applied voltage, r<sub>tip</sub> = tip radius, k<sub>f</sub> ≈ 5–8 (geometric factor)
+            </div>
+          </FormulaBlock>
+          <FormulaBlock label="Magnification">
+            <div>M = L / (β · r<sub>tip</sub>)</div>
+            <div className="text-[9px] text-[var(--color-text-muted)] mt-1">
+              L = tip-to-screen distance, β ≈ 1.5 (image compression factor)
+            </div>
+          </FormulaBlock>
+          <DefTerm term="Field evaporation">
+            Above a critical field, surface atoms are ionized and removed from the tip — the basis
+            of Atom Probe Tomography (APT).
+          </DefTerm>
+          <DefTerm term="Wulff construction">
+            Determines the equilibrium crystal shape by minimizing total surface energy.
+            Different {'{hkl}'} facets have different surface energies γ.
+          </DefTerm>
+        </EducationPanel>
+
+        <EducationPanel title="Crystal Lattices" icon="🔬">
+          <DefTerm term="FCC (Face-Centered Cubic)">
+            4 atoms per unit cell (corners + face centers). Examples: Cu, Ni, Au, Pt, Ag, Al.
+            Coordination number = 12. d<sub>nn</sub> = a/√2.
+          </DefTerm>
+          <DefTerm term="BCC (Body-Centered Cubic)">
+            2 atoms per unit cell (corners + body center). Examples: Fe, W, Cr, Mo, V.
+            Coordination number = 8. d<sub>nn</sub> = a√3/2.
+          </DefTerm>
+          <DefTerm term="HCP (Hexagonal Close-Packed)">
+            Effective 6 atoms per unit cell. Examples: Ti, Co, Zr, Hf, Re.
+            Coordination number = 12. Ideal c/a = √(8/3) ≈ 1.633.
+          </DefTerm>
+          <FormulaBlock label="Zone lines on FIM images">
+            <div>Zone lines appear where crystallographic planes intersect the tip surface.</div>
+            <div className="text-[9px] text-[var(--color-text-muted)] mt-1">
+              Poles correspond to low-index directions; rings indicate terrace edges on facets.
+            </div>
+          </FormulaBlock>
+        </EducationPanel>
+
+        <EducationPanel title="Learning Exercises" icon="📝">
+          <div className="space-y-2">
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="font-semibold text-[var(--color-accent-yellow)] text-[10px] mb-1">Exercise 1</div>
+              <div>Compare the FIM patterns of <b>Pt (FCC)</b> vs <b>W (BCC)</b>. Why does Pt show
+              a distinct (111) central pole while W shows (110)?</div>
+            </div>
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="font-semibold text-[var(--color-accent-yellow)] text-[10px] mb-1">Exercise 2</div>
+              <div>Increase the tip radius from 20 to 40 nm. How does the number of visible rings
+              around each pole change, and why?</div>
+            </div>
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="font-semibold text-[var(--color-accent-yellow)] text-[10px] mb-1">Exercise 3</div>
+              <div>Switch between materials in the same lattice family (e.g. Cu → Ni → Ag, all FCC).
+              How does the lattice parameter affect the ring spacing?</div>
+            </div>
+          </div>
+        </EducationPanel>
 
         <RelatedTools
           toolId="fim"

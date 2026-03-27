@@ -10,6 +10,7 @@ import Panel from '@/components/shared/Panel';
 import SliderControl from '@/components/shared/SliderControl';
 import ToggleSwitch from '@/components/shared/ToggleSwitch';
 import RelatedTools from '@/components/shared/RelatedTools';
+import EducationPanel, { FormulaBlock, DefTerm } from '@/components/shared/EducationPanel';
 import { SYMBOL_TO_Z } from '@/lib/connections';
 
 interface MillerState {
@@ -682,6 +683,71 @@ export default function MillerViewer({
             ))}
           </div>
         </Panel>
+
+        <EducationPanel title="Miller Index Theory" icon="📖">
+          <p className="mb-2">
+            <b>Miller indices (hkl)</b> describe the orientation of crystallographic planes.
+            They are the reciprocals of the fractional intercepts a plane makes with the crystal axes,
+            reduced to the smallest integers.
+          </p>
+          <FormulaBlock label="Interplanar Spacing (Cubic)">
+            <div>d<sub>hkl</sub> = a / √(h² + k² + l²)</div>
+            <div className="text-[9px] text-[var(--color-text-muted)] mt-1">
+              For cubic crystals (FCC, BCC). Lower-index planes have larger spacing.
+            </div>
+          </FormulaBlock>
+          <FormulaBlock label="Bragg's Law">
+            <div>nλ = 2d<sub>hkl</sub> sin θ</div>
+            <div className="text-[9px] text-[var(--color-text-muted)] mt-1">
+              X-ray diffraction condition. Each set of planes gives a diffraction peak at angle θ.
+            </div>
+          </FormulaBlock>
+          <DefTerm term="Surface energy">
+            Close-packed planes {'{(111) in FCC, (110) in BCC}'} have the lowest surface energy
+            because atoms have the most nearest neighbors.
+          </DefTerm>
+          <DefTerm term="Surface density">
+            The number of atoms per unit area on a crystallographic plane. Higher density =
+            more chemically stable surface.
+          </DefTerm>
+        </EducationPanel>
+
+        <EducationPanel title="Common Planes" icon="🔬">
+          <div className="space-y-1.5">
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="font-semibold text-[var(--color-accent-cyan)] text-[10px]">(100) — Cube face</div>
+              <div className="text-[10px]">Square arrangement. Important in semiconductor wafers (Si, Ge).</div>
+            </div>
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="font-semibold text-[var(--color-accent-cyan)] text-[10px]">(110) — Diagonal plane</div>
+              <div className="text-[10px]">Densest plane in BCC. Rectangular atom arrangement in FCC.</div>
+            </div>
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="font-semibold text-[var(--color-accent-cyan)] text-[10px]">(111) — Close-packed</div>
+              <div className="text-[10px]">Densest plane in FCC. Hexagonal arrangement. Key for catalysis (Pt(111)).</div>
+            </div>
+          </div>
+        </EducationPanel>
+
+        <EducationPanel title="Learning Exercises" icon="📝">
+          <div className="space-y-2">
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="font-semibold text-[var(--color-accent-yellow)] text-[10px] mb-1">Exercise 1</div>
+              <div>For an FCC crystal, compare the atom density on (100), (110), and (111) planes.
+              Which is the most densely packed and why?</div>
+            </div>
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="font-semibold text-[var(--color-accent-yellow)] text-[10px] mb-1">Exercise 2</div>
+              <div>Switch between FCC and BCC with the same Miller indices (110). How does
+              the surface arrangement change?</div>
+            </div>
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="font-semibold text-[var(--color-accent-yellow)] text-[10px] mb-1">Exercise 3</div>
+              <div>Calculate d<sub>hkl</sub> for Cu (a=3.615 Å) for planes (111), (200), (220).
+              Use the cutting plane view to verify your calculations.</div>
+            </div>
+          </div>
+        </EducationPanel>
 
         <RelatedTools
           toolId="miller"

@@ -16,6 +16,7 @@ import { CHART_LIGHT } from '@/lib/chart-theme';
 import Panel from '@/components/shared/Panel';
 import SliderControl from '@/components/shared/SliderControl';
 import ToggleSwitch from '@/components/shared/ToggleSwitch';
+import EducationPanel, { FormulaBlock, DefTerm } from '@/components/shared/EducationPanel';
 
 interface Props {
   gas: Gas;
@@ -333,6 +334,73 @@ export default function VdW2DPanel({ gas, gasId, onGasChange }: Props) {
             Auto Range
           </button>
         </div>
+
+        <EducationPanel title="Van der Waals Theory" icon="📖">
+          <p className="mb-2">
+            The <b>van der Waals equation</b> corrects the ideal gas law for finite molecular
+            size (b) and intermolecular attractions (a). It was proposed by Johannes Diderik
+            van der Waals in 1873 and earned him the Nobel Prize in 1910.
+          </p>
+          <FormulaBlock label="Van der Waals Equation">
+            <div>(P + a/V<sub>m</sub>²)(V<sub>m</sub> − b) = RT</div>
+            <div className="text-[9px] text-[var(--color-text-muted)] mt-1">
+              a = attraction parameter (L²·atm/mol²), b = excluded volume (L/mol)
+            </div>
+          </FormulaBlock>
+          <FormulaBlock label="Critical Constants">
+            <div>T<sub>c</sub> = 8a / (27Rb)</div>
+            <div>P<sub>c</sub> = a / (27b²)</div>
+            <div>V<sub>c</sub> = 3b</div>
+            <div className="text-[9px] text-[var(--color-text-muted)] mt-1">
+              At the critical point, the liquid and gas phases become indistinguishable.
+            </div>
+          </FormulaBlock>
+          <FormulaBlock label="Compressibility Factor">
+            <div>Z = PV<sub>m</sub> / RT</div>
+            <div className="text-[9px] text-[var(--color-text-muted)] mt-1">
+              Z = 1 for ideal gas. Z &lt; 1 → attractions dominate. Z &gt; 1 → repulsions dominate.
+            </div>
+          </FormulaBlock>
+        </EducationPanel>
+
+        <EducationPanel title="Phase Behavior" icon="🔬">
+          <DefTerm term="Binodal curve">
+            Boundary between single-phase and two-phase regions. Points on the binodal represent
+            the liquid and vapor volumes at coexistence for each T &lt; T<sub>c</sub>.
+          </DefTerm>
+          <DefTerm term="Spinodal curve">
+            Locus of (∂P/∂V)<sub>T</sub> = 0. Inside the spinodal, the fluid is
+            thermodynamically unstable — spontaneous phase separation (spinodal decomposition).
+          </DefTerm>
+          <DefTerm term="Maxwell construction">
+            The equal-area rule replaces the unphysical oscillation in the subcritical isotherm
+            with a horizontal tie-line at equilibrium pressure P<sub>eq</sub>.
+          </DefTerm>
+          <DefTerm term="Supercritical fluid">
+            Above T<sub>c</sub> and P<sub>c</sub>, no distinct liquid/gas boundary exists.
+            Used in extraction (CO₂), chromatography, and green chemistry.
+          </DefTerm>
+        </EducationPanel>
+
+        <EducationPanel title="Learning Exercises" icon="📝">
+          <div className="space-y-2">
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="font-semibold text-[var(--color-accent-yellow)] text-[10px] mb-1">Exercise 1</div>
+              <div>Enable "Critical point" and "Binodal" displays. As you lower T below T<sub>c</sub>,
+              observe how the isotherm develops a local minimum and maximum — the van der Waals loop.</div>
+            </div>
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="font-semibold text-[var(--color-accent-yellow)] text-[10px] mb-1">Exercise 2</div>
+              <div>Compare CO₂ (T<sub>c</sub>=304 K) with H₂O (T<sub>c</sub>=647 K). Why is CO₂
+              much easier to use as a supercritical solvent?</div>
+            </div>
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="font-semibold text-[var(--color-accent-yellow)] text-[10px] mb-1">Exercise 3</div>
+              <div>Enable the ideal gas overlay at the same temperature. At what volume
+              does the real gas start to deviate significantly, and why?</div>
+            </div>
+          </div>
+        </EducationPanel>
       </div>
       <div className="flex-1 p-3 min-w-0 bg-[var(--color-bg-secondary)]">
         <div

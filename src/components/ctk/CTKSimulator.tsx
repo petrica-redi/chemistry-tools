@@ -13,6 +13,7 @@ import { runSimulation, type SimResult } from './CTKEngine';
 import TabBar from '@/components/shared/TabBar';
 import Panel from '@/components/shared/Panel';
 import RelatedTools from '@/components/shared/RelatedTools';
+import EducationPanel, { FormulaBlock, DefTerm } from '@/components/shared/EducationPanel';
 
 // Dynamic import for 3D component
 const CTK3DView = dynamic(() => import('./CTK3DView'), { ssr: false });
@@ -459,6 +460,81 @@ export default function CTKSimulator({ initialGasA }: Props = {}) {
             Tanks-in-series · Fuller–Schettler–Giddings · Taylor · Frit P4 · Ne dilution
           </div>
         </div>
+
+        <EducationPanel title="CTK Theory" icon="📖" className="mb-3 text-left">
+          <p className="mb-2">
+            <b>Chemical Transient Kinetics (CTK)</b> studies catalytic reaction mechanisms by
+            rapidly switching gas feeds over a catalyst bed while monitoring outlet composition
+            in real time with a mass spectrometer.
+          </p>
+          <FormulaBlock label="Tanks-in-Series Model">
+            <div>N = (V<sub>bed</sub> · ε) / V<sub>tank</sub></div>
+            <div className="text-[9px] text-[var(--color-text-muted)] mt-1">
+              Axial dispersion modeled as N ideal CSTRs in series. Higher N → closer to plug flow (Pe → ∞).
+            </div>
+          </FormulaBlock>
+          <FormulaBlock label="Péclet Number">
+            <div>Pe = u·L / D<sub>ax</sub></div>
+            <div className="text-[9px] text-[var(--color-text-muted)] mt-1">
+              Ratio of advective to dispersive transport. Pe &gt; 100 indicates near-plug-flow conditions.
+            </div>
+          </FormulaBlock>
+          <FormulaBlock label="Fuller–Schettler–Giddings Diffusion">
+            <div>D<sub>AB</sub> = 0.00143·T<sup>1.75</sup>·(1/M<sub>A</sub>+1/M<sub>B</sub>)<sup>0.5</sup> / (P·(Σv<sub>A</sub><sup>1/3</sup>+Σv<sub>B</sub><sup>1/3</sup>)²)</div>
+            <div className="text-[9px] text-[var(--color-text-muted)] mt-1">
+              Estimates binary gas diffusion coefficients from molecular properties.
+            </div>
+          </FormulaBlock>
+          <DefTerm term="Neon tracer">
+            Inert Ne is co-fed to normalize signals and account for dead volumes. Its response
+            curve reveals the system residence time distribution (RTD).
+          </DefTerm>
+          <DefTerm term="Back-transient">
+            After switching from reactive feed (B) back to inert (A), surface intermediates
+            desorb — revealing their coverage and binding kinetics.
+          </DefTerm>
+        </EducationPanel>
+
+        <EducationPanel title="Reactor Design" icon="🔬" className="mb-3 text-left">
+          <DefTerm term="Void fraction (ε)">
+            Fraction of bed volume not occupied by catalyst particles. Typical: 0.35–0.45
+            for random packing of spheres.
+          </DefTerm>
+          <DefTerm term="Space velocity">
+            GHSV = F<sub>total</sub> / V<sub>bed</sub>. Higher GHSV means shorter contact time
+            between reactants and catalyst.
+          </DefTerm>
+          <DefTerm term="Frit (P4)">
+            Porous sintered glass or metal support that holds the catalyst bed in place
+            while allowing gas flow. P4 has pore size 10–16 μm.
+          </DefTerm>
+          <FormulaBlock label="Residence Time">
+            <div>τ = V<sub>bed</sub> · ε / Q<sub>total</sub></div>
+            <div className="text-[9px] text-[var(--color-text-muted)] mt-1">
+              Mean time gas spends inside the catalyst bed. Shorter τ → less conversion but better time resolution.
+            </div>
+          </FormulaBlock>
+        </EducationPanel>
+
+        <EducationPanel title="Learning Exercises" icon="📝" className="mb-3 text-left">
+          <div className="space-y-2">
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="font-semibold text-[var(--color-accent-yellow)] text-[10px] mb-1">Exercise 1</div>
+              <div>Reduce the tube inner diameter from 4mm to 1mm. How does the Péclet number
+              of the piping change, and what does this mean for signal broadening?</div>
+            </div>
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="font-semibold text-[var(--color-accent-yellow)] text-[10px] mb-1">Exercise 2</div>
+              <div>Compare the Ne tracer breakthrough curve with a reactive gas (e.g. CO).
+              The difference in shape reveals adsorption dynamics on the catalyst surface.</div>
+            </div>
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="font-semibold text-[var(--color-accent-yellow)] text-[10px] mb-1">Exercise 3</div>
+              <div>Double the catalyst bed height. How does this affect τ and the number of
+              tanks (N)? What happens to the transient time resolution?</div>
+            </div>
+          </div>
+        </EducationPanel>
         {(() => {
           // Pick the first non-none gas from mix A for VdW deep link
           const firstGas = mixA.find((m) => m.g !== 'none');

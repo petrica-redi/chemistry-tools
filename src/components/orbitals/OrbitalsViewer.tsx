@@ -9,6 +9,7 @@ import {
 import Panel from '@/components/shared/Panel';
 import SliderControl from '@/components/shared/SliderControl';
 import RelatedTools from '@/components/shared/RelatedTools';
+import EducationPanel, { FormulaBlock, DefTerm } from '@/components/shared/EducationPanel';
 import { SYMBOL_TO_Z } from '@/lib/connections';
 
 interface Props { initialZ?: number; initialElement?: string; }
@@ -526,6 +527,74 @@ export default function OrbitalsViewer({ initialZ, initialElement }: Props = {})
               </button>
             ))}
           </div>
+
+        <EducationPanel title="Atomic Orbital Theory" icon="📖">
+          <p className="mb-2">
+            Atomic orbitals are mathematical functions that describe the wave-like behavior of
+            electrons. Each orbital is defined by three quantum numbers (n, l, m<sub>l</sub>) and
+            represents a region where an electron is likely to be found.
+          </p>
+          <FormulaBlock label="Schrödinger Equation">
+            <div>Ĥψ = Eψ</div>
+            <div className="text-[9px] text-[var(--color-text-muted)] mt-1">
+              Solutions for the hydrogen atom give the familiar s, p, d, f orbital shapes.
+            </div>
+          </FormulaBlock>
+          <FormulaBlock label="Radial Wave Function">
+            <div>R<sub>nl</sub>(r) = N · (2Zr/na₀)<sup>l</sup> · e<sup>−Zr/na₀</sup> · L(r)</div>
+            <div className="text-[9px] text-[var(--color-text-muted)] mt-1">
+              N = normalization, L(r) = associated Laguerre polynomial, a₀ = Bohr radius (52.9 pm)
+            </div>
+          </FormulaBlock>
+          <FormulaBlock label="Angular Wave Function">
+            <div>Y<sub>lm</sub>(θ,φ) = spherical harmonics</div>
+            <div className="text-[9px] text-[var(--color-text-muted)] mt-1">
+              Determines the shape: l=0→sphere, l=1→dumbbell, l=2→cloverleaf, l=3→complex
+            </div>
+          </FormulaBlock>
+        </EducationPanel>
+
+        <EducationPanel title="Quantum Numbers" icon="🔢">
+          <DefTerm term="n (principal)">
+            Energy level / shell (1, 2, 3...). Determines size and energy.
+          </DefTerm>
+          <DefTerm term="l (azimuthal)">
+            Orbital shape: 0=s, 1=p, 2=d, 3=f. Range: 0 to n−1.
+          </DefTerm>
+          <DefTerm term="mₗ (magnetic)">
+            Orientation in space. Range: −l to +l. Gives 2l+1 orientations.
+          </DefTerm>
+          <DefTerm term="mₛ (spin)">
+            Electron spin: +½ or −½. Each orbital holds max 2 electrons (Pauli exclusion).
+          </DefTerm>
+          <FormulaBlock label="Effective Nuclear Charge (Zeff)">
+            <div>Z<sub>eff</sub> = Z − σ</div>
+            <div className="text-[9px] text-[var(--color-text-muted)] mt-1">
+              This simulator uses Clementi-Raimondi / Slater rules for σ (shielding constant).
+              Inner electrons shield outer ones from the full nuclear charge.
+            </div>
+          </FormulaBlock>
+        </EducationPanel>
+
+        <EducationPanel title="Learning Exercises" icon="📝">
+          <div className="space-y-2">
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="font-semibold text-[var(--color-accent-yellow)] text-[10px] mb-1">Exercise 1</div>
+              <div>Compare 1s, 2s, and 3s orbitals. How does the number of radial nodes
+              change with n? (Nodes = n − l − 1)</div>
+            </div>
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="font-semibold text-[var(--color-accent-yellow)] text-[10px] mb-1">Exercise 2</div>
+              <div>Visualize the 3d orbitals (3d<sub>z²</sub>, 3d<sub>xy</sub>, 3d<sub>xz</sub>, 3d<sub>yz</sub>, 3d<sub>x²−y²</sub>).
+              Why does 3d<sub>z²</sub> look different from the others?</div>
+            </div>
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="font-semibold text-[var(--color-accent-yellow)] text-[10px] mb-1">Exercise 3</div>
+              <div>Compare Z<sub>eff</sub> for 2s vs 2p in carbon (Z=6). Which has higher
+              effective nuclear charge and why?</div>
+            </div>
+          </div>
+        </EducationPanel>
         </div>
       </div>
 
