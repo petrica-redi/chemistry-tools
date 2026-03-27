@@ -242,6 +242,45 @@ export default function TitrationControls({ state, sub, titrant, result, onUpdat
               <div className="text-[var(--color-text-muted)] mb-1 font-mono">Ionic Strength</div>
               <div className="text-[var(--color-text-secondary)]">Simplified model (K<sub>w</sub> = 10<sup>−14</sup>)</div>
             </div>
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="text-[var(--color-accent-cyan)] mb-1 font-mono text-[10px] font-bold">Charge Balance</div>
+              <div className="text-[var(--color-text-secondary)] font-mono text-[10px] leading-relaxed" dangerouslySetInnerHTML={{ __html:
+                sub.type === 'acid'
+                  ? '[H<sup>+</sup>] + C<sub>b</sub>&middot;V<sub>b</sub>/(V<sub>a</sub>+V<sub>b</sub>) = [OH<sup>−</sup>] + C<sub>a</sub>&middot;V<sub>a</sub>/(V<sub>a</sub>+V<sub>b</sub>)&middot;&Sigma;&alpha;<sub>i</sub>'
+                  : '[H<sup>+</sup>] + C<sub>b</sub>&middot;V<sub>b</sub>/(V<sub>a</sub>+V<sub>b</sub>)&middot;&Sigma;&alpha;<sub>i</sub> = [OH<sup>−</sup>] + C<sub>a</sub>&middot;V<sub>a</sub>/(V<sub>a</sub>+V<sub>b</sub>)'
+              }} />
+            </div>
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="text-[var(--color-accent-cyan)] mb-1 font-mono text-[10px] font-bold">Molar Fractions &alpha;<sub>i</sub></div>
+              <div className="text-[var(--color-text-secondary)] font-mono text-[10px] leading-relaxed">
+                <div>&alpha;<sub>0</sub> = T<sub>0</sub> / D &nbsp; (fully protonated)</div>
+                <div>&alpha;<sub>k</sub> = T<sub>k</sub> / D &nbsp; (k-th deprotonation)</div>
+                <div>T<sub>k</sub> = &prod;<sub>j=1..k</sub> K<sub>aj</sub> / [H<sup>+</sup>]<sup>k</sup></div>
+                <div>D = T<sub>0</sub> + T<sub>1</sub> + ... + T<sub>n</sub></div>
+              </div>
+            </div>
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="text-[var(--color-accent-cyan)] mb-1 font-mono text-[10px] font-bold">K<sub>a</sub> / pK<sub>a</sub> Values</div>
+              <div className="text-[var(--color-text-secondary)] font-mono text-[10px] leading-relaxed">
+                {result.pka.map((pk, i) => (
+                  <div key={i}>{pk.label} = {pk.value.toFixed(2)} (K<sub>a</sub> = {Math.pow(10, -pk.value).toExponential(2)})</div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="text-[var(--color-accent-cyan)] mb-1 font-mono text-[10px] font-bold">Concentration Dilution</div>
+              <div className="text-[var(--color-text-secondary)] font-mono text-[10px] leading-relaxed">
+                <div>C<sub>a</sub>(V<sub>b</sub>) = C<sub>a,0</sub> &middot; V<sub>a</sub> / (V<sub>a</sub> + V<sub>b</sub>)</div>
+                <div>C<sub>b</sub>(V<sub>b</sub>) = C<sub>b,0</sub> &middot; V<sub>b</sub> / (V<sub>a</sub> + V<sub>b</sub>)</div>
+              </div>
+            </div>
+            <div className="bg-[var(--color-bg-tertiary)] rounded p-2 border border-[var(--color-border)]">
+              <div className="text-[var(--color-accent-cyan)] mb-1 font-mono text-[10px] font-bold">Equivalence Volume</div>
+              <div className="text-[var(--color-text-secondary)] font-mono text-[10px] leading-relaxed">
+                <div>V<sub>eq,k</sub> = k &middot; C<sub>a</sub> &middot; V<sub>a</sub> / C<sub>b</sub></div>
+                <div className="text-[var(--color-text-muted)]">(for k-th equivalence point)</div>
+              </div>
+            </div>
           </div>
         </Panel>
       )}

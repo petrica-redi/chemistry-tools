@@ -43,6 +43,12 @@ export const DB: Species[] = [
   { id: 'chcl2cooh', name: 'Acide dichloroacétique', formula: 'Cl₂CHCOOH', type: 'acid', ka: [5.0e-2], color: '#4fc3f7' },
   { id: 'ccl3cooh', name: 'Acide trichloroacétique', formula: 'Cl₃CCOOH', type: 'acid', ka: [2.0e-1], color: '#29b6f6' },
   { id: 'c3h5o3', name: 'Acide pyruvique', formula: 'CH₃COCOOH', type: 'acid', ka: [3.2e-3], color: '#ce93d8' },
+  { id: 'hcoo2h', name: 'Acide glycolique', formula: 'HOCH₂COOH', type: 'acid', ka: [1.5e-4], color: '#4db6ac' },
+  { id: 'hc2h3o2f', name: 'Acide fluoroacétique', formula: 'FCH₂COOH', type: 'acid', ka: [2.6e-3], color: '#81d4fa' },
+  { id: 'c4h5o5', name: 'Acide malique', formula: 'C₄H₆O₅', type: 'acid', ka: [3.9e-4], color: '#a5d6a7' },
+  { id: 'c4h5o4', name: 'Acide succinique (1)', formula: 'C₄H₆O₄ (1)', type: 'acid', ka: [6.2e-5], color: '#c5e1a5' },
+  { id: 'asc', name: 'Acide ascorbique (1)', formula: 'C₆H₈O₆ (1)', type: 'acid', ka: [7.9e-5], color: '#fff176' },
+  { id: 'hf2', name: 'Acide nitrobenzoïque', formula: 'NO₂C₆H₄COOH', type: 'acid', ka: [6.1e-4], color: '#ffab91' },
 
   // Polyprotic acids
   { id: 'h2so4', name: 'Acide sulfurique', formula: 'H₂SO₄', type: 'acid', ka: [1e8, 1.2e-2], color: '#e53935', poly: true },
@@ -52,9 +58,12 @@ export const DB: Species[] = [
   { id: 'h2so3', name: 'Acide sulfureux', formula: 'H₂SO₃', type: 'acid', ka: [1.5e-2, 6.3e-8], color: '#d81b60', poly: true },
   { id: 'h3cit', name: 'Acide citrique', formula: 'C₆H₈O₇', type: 'acid', ka: [7.4e-4, 1.7e-5, 4.0e-7], color: '#ff8f00', poly: true },
   { id: 'h2s', name: 'Acide sulfhydrique', formula: 'H₂S', type: 'acid', ka: [1.0e-7, 1.0e-14], color: '#6d4c41', poly: true },
+  { id: 'h2se', name: 'Acide sélénhydrique', formula: 'H₂Se', type: 'acid', ka: [1.3e-4, 1.0e-11], color: '#795548', poly: true },
   { id: 'h2cro4', name: 'Acide chromique', formula: 'H₂CrO₄', type: 'acid', ka: [1.8e-1, 3.2e-7], color: '#ff7043', poly: true },
+  { id: 'h4edta', name: 'EDTA (acide)', formula: 'H₄EDTA', type: 'acid', ka: [1.0e-2, 2.2e-3, 6.9e-7, 5.5e-11], color: '#5c6bc0', poly: true },
   { id: 'h2mal', name: 'Acide malonique', formula: 'CH₂(COOH)₂', type: 'acid', ka: [1.49e-3, 2.01e-6], color: '#66bb6a', poly: true },
   { id: 'h2tart', name: 'Acide tartrique', formula: 'C₄H₆O₆', type: 'acid', ka: [9.2e-4, 4.3e-5], color: '#ab47bc', poly: true },
+  { id: 'h2succ', name: 'Acide succinique', formula: 'C₄H₆O₄', type: 'acid', ka: [6.2e-5, 2.3e-6], color: '#c0ca33', poly: true },
   { id: 'h2phthal', name: 'Acide phtalique', formula: 'C₈H₆O₄', type: 'acid', ka: [1.1e-3, 3.9e-6], color: '#7e57c2', poly: true },
   { id: 'h3asc', name: 'Acide ascorbique', formula: 'C₆H₈O₆', type: 'acid', ka: [7.9e-5, 1.6e-12], color: '#fdd835', poly: true },
 
@@ -77,12 +86,16 @@ export const DB: Species[] = [
   { id: 'imid', name: 'Imidazole', formula: 'C₃H₄N₂', type: 'base', kb: [1.1e-7], np: 1, color: '#e91e63' },
   { id: 'hydraz', name: 'Hydrazine', formula: 'N₂H₄', type: 'base', kb: [1.3e-6], np: 1, color: '#9c27b0' },
   { id: 'hydrox', name: 'Hydroxylamine', formula: 'NH₂OH', type: 'base', kb: [1.1e-8], np: 1, color: '#673ab7' },
+  { id: '(c2h5)2nh', name: 'Diéthylamine', formula: '(C₂H₅)₂NH', type: 'base', kb: [1.3e-3], np: 1, color: '#00796b' },
+  { id: '(c2h5)3n', name: 'Triéthylamine', formula: '(C₂H₅)₃N', type: 'base', kb: [5.6e-4], np: 1, color: '#0097a7' },
 
   // Polybases
   { id: 'na2co3', name: 'Carbonate de sodium', formula: 'Na₂CO₃', type: 'base', cka: [4.3e-7, 4.7e-11], np: 2, color: '#0288d1', poly: true },
   { id: 'na3po4', name: 'Phosphate de sodium', formula: 'Na₃PO₄', type: 'base', cka: [7.5e-3, 6.2e-8, 4.8e-13], np: 3, color: '#00897b', poly: true },
   { id: 'en', name: 'Éthylènediamine', formula: 'H₂N(CH₂)₂NH₂', type: 'base', kb: [8.5e-5, 2.7e-8], np: 2, color: '#7b1fa2', poly: true },
   { id: 'piper', name: 'Pipérazine', formula: 'C₄H₁₀N₂', type: 'base', kb: [4.7e-5, 3.1e-9], np: 2, color: '#c62828', poly: true },
+  { id: 'dien', name: 'Diéthylènetriamine', formula: 'C₄H₁₃N₃', type: 'base', kb: [9.7e-5, 5.2e-8, 2.3e-12], np: 3, color: '#1565c0', poly: true },
+  { id: 'na2s', name: 'Sulfure de sodium', formula: 'Na₂S', type: 'base', cka: [1.0e-7, 1.0e-14], np: 2, color: '#4e342e', poly: true },
   { id: 'na2c2o4', name: 'Oxalate de sodium', formula: 'Na₂C₂O₄', type: 'base', cka: [5.9e-2, 6.4e-5], np: 2, color: '#7b1fa2', poly: true },
 ];
 

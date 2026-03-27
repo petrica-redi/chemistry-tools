@@ -330,22 +330,25 @@ export default function CTKSimulator({ initialGasA }: Props = {}) {
             <div className="flex-1 min-w-[210px]">
               <Panel title="Reactor">
                 {[
-                  { key: 'T' as const, label: 'Temperature', unit: '°C' },
-                  { key: 'P' as const, label: 'Total pressure', unit: 'Pa' },
-                  { key: 'rID' as const, label: 'Reactor inner Ø', unit: 'mm' },
-                  { key: 'totalH' as const, label: 'Reactor volume height', unit: 'mm' },
-                  { key: 'dp' as const, label: 'Catalyst particle Ø', unit: 'mm' },
-                  { key: 'eps' as const, label: 'Void fraction ε', unit: '' },
-                  { key: 'frit' as const, label: 'Frit P4 thickness', unit: 'mm' },
-                  { key: 'bedH' as const, label: 'Catalyst bed height', unit: 'mm' },
-                ].map(({ key, label, unit }) => (
+                  { key: 'T' as const, label: 'Temperature', unit: '°C', min: 0, max: 1000, step: 1 },
+                  { key: 'P' as const, label: 'Total pressure', unit: 'Pa', min: 50000, max: 200000, step: 100 },
+                  { key: 'rID' as const, label: 'Reactor inner Ø', unit: 'mm', min: 5, max: 50, step: 0.5 },
+                  { key: 'totalH' as const, label: 'Reactor volume height', unit: 'mm', min: 5, max: 150, step: 1 },
+                  { key: 'dp' as const, label: 'Catalyst particle Ø', unit: 'mm', min: 0.05, max: 5, step: 0.05 },
+                  { key: 'eps' as const, label: 'Void fraction ε', unit: '', min: 0.2, max: 0.7, step: 0.01 },
+                  { key: 'frit' as const, label: 'Frit P4 thickness', unit: 'mm', min: 0.5, max: 10, step: 0.5 },
+                  { key: 'bedH' as const, label: 'Catalyst bed height', unit: 'mm', min: 1, max: 100, step: 1 },
+                ].map(({ key, label, unit, min, max, step }) => (
                   <div key={key} className="mb-2">
                     <label className="text-[10px] text-[var(--color-text-secondary)] mb-1 block">{label}</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
                         value={params[key]}
-                        onChange={(e) => updateParam(key, parseFloat(e.target.value) || 0)}
+                        min={min}
+                        max={max}
+                        step={step}
+                        onChange={(e) => updateParam(key, Math.min(max, Math.max(min, parseFloat(e.target.value) || 0)))}
                       />
                       {unit && <span className="text-[9px] text-[var(--color-text-muted)]">{unit}</span>}
                     </div>
@@ -356,14 +359,14 @@ export default function CTKSimulator({ initialGasA }: Props = {}) {
             <div className="flex-1 min-w-[210px]">
               <Panel title="Piping">
                 {[
-                  { key: 'tID' as const, label: 'Tube inner Ø', unit: 'mm' },
-                  { key: 'Lin' as const, label: 'Valve → reactor length', unit: 'mm' },
-                  { key: 'Lout' as const, label: 'Reactor → MS length', unit: 'mm' },
-                ].map(({ key, label, unit }) => (
+                  { key: 'tID' as const, label: 'Tube inner Ø', unit: 'mm', min: 0.5, max: 10, step: 0.1 },
+                  { key: 'Lin' as const, label: 'Valve → reactor length', unit: 'mm', min: 50, max: 5000, step: 10 },
+                  { key: 'Lout' as const, label: 'Reactor → MS length', unit: 'mm', min: 50, max: 5000, step: 10 },
+                ].map(({ key, label, unit, min, max, step }) => (
                   <div key={key} className="mb-2">
                     <label className="text-[10px] text-[var(--color-text-secondary)] mb-1 block">{label}</label>
                     <div className="flex items-center gap-2">
-                      <input type="number" value={params[key]} onChange={(e) => updateParam(key, parseFloat(e.target.value) || 0)} />
+                      <input type="number" value={params[key]} min={min} max={max} step={step} onChange={(e) => updateParam(key, Math.min(max, Math.max(min, parseFloat(e.target.value) || 0)))} />
                       <span className="text-[9px] text-[var(--color-text-muted)]">{unit}</span>
                     </div>
                   </div>
@@ -372,15 +375,15 @@ export default function CTKSimulator({ initialGasA }: Props = {}) {
               <div className="mt-3">
                 <Panel title="Chronology">
                   {[
-                    { key: 'tSW' as const, label: 'Build-up + steady state (B)', unit: 's' },
-                    { key: 'tSS' as const, label: 'Steady state duration (B)', unit: 's' },
-                    { key: 'tBT' as const, label: 'Back-transient duration', unit: 's' },
-                    { key: 'neFlow' as const, label: 'Ne tracer flow', unit: 'mL/min' },
-                  ].map(({ key, label, unit }) => (
+                    { key: 'tSW' as const, label: 'Build-up + steady state (B)', unit: 's', min: 1, max: 300, step: 1 },
+                    { key: 'tSS' as const, label: 'Steady state duration (B)', unit: 's', min: 1, max: 300, step: 1 },
+                    { key: 'tBT' as const, label: 'Back-transient duration', unit: 's', min: 1, max: 300, step: 1 },
+                    { key: 'neFlow' as const, label: 'Ne tracer flow', unit: 'mL/min', min: 0, max: 50, step: 0.5 },
+                  ].map(({ key, label, unit, min, max, step }) => (
                     <div key={key} className="mb-2">
                       <label className="text-[10px] text-[var(--color-text-secondary)] mb-1 block">{label}</label>
                       <div className="flex items-center gap-2">
-                        <input type="number" value={params[key]} onChange={(e) => updateParam(key, parseFloat(e.target.value) || 0)} />
+                        <input type="number" value={params[key]} min={min} max={max} step={step} onChange={(e) => updateParam(key, Math.min(max, Math.max(min, parseFloat(e.target.value) || 0)))} />
                         <span className="text-[9px] text-[var(--color-text-muted)]">{unit}</span>
                       </div>
                     </div>
