@@ -379,9 +379,9 @@ export function computeFields(
 /* ================================================================
    COLORMAPS
    ================================================================ */
-export type ColormapName = 'jet' | 'green' | 'hot' | 'viridis' | 'plasma' | 'inferno' | 'coolwarm' | 'turbo';
+export type ColormapName = 'jet' | 'green' | 'hot' | 'viridis' | 'plasma' | 'inferno' | 'coolwarm' | 'turbo' | 'cividis' | 'custom';
 
-export function getColor(t: number, cm: ColormapName): [number, number, number] {
+export function getColor(t: number, cm: ColormapName, customLow?: string, customHigh?: string): [number, number, number] {
   t = Math.max(0, Math.min(1, t));
   switch (cm) {
     case 'green':
@@ -423,6 +423,22 @@ export function getColor(t: number, cm: ColormapName): [number, number, number] 
       const r = Math.round(Math.max(0, Math.min(255, (0.13 + t*(10.05 - t*(42.4 - t*(77.2 - t*51.0))))*255)));
       const g = Math.round(Math.max(0, Math.min(255, (0.09 + t*(4.95 - t*(12.7 - t*10.6)))*0.98*255)));
       const b = Math.round(Math.max(0, Math.min(255, (0.11 + t*(8.73 - t*(33.2 - t*(38.4 - t*14.0))))*255)));
+      return [r, g, b];
+    }
+    case 'cividis': {
+      // Cividis colormap optimized for color blindness
+      const r = Math.round((0.127 + t*(3.50 - t*(2.90 - t*1.42)))*255);
+      const g = Math.round((0.080 + t*(1.52 - t*(1.01 - t*0.29)))*255);
+      const b = Math.round((0.233 + t*(1.68 - t*(1.87 - t*0.94)))*255);
+      return [Math.max(0, Math.min(255, r)), Math.max(0, Math.min(255, g)), Math.max(0, Math.min(255, b))];
+    }
+    case 'custom': {
+      // Blend between custom low and high colors
+      const low = customLow ? hexToRGB(customLow) : [0, 0, 255];
+      const high = customHigh ? hexToRGB(customHigh) : [255, 0, 0];
+      const r = Math.round(low[0] + t * (high[0] - low[0]));
+      const g = Math.round(low[1] + t * (high[1] - low[1]));
+      const b = Math.round(low[2] + t * (high[2] - low[2]));
       return [r, g, b];
     }
     default: {
@@ -484,6 +500,7 @@ export function renderTip3D(
   millerMode: 'off' | 'main' | 'all', miller3dFont: number,
   showStereo: boolean, stereoSize: number, stereoFont: number,
   showZones: boolean, zoneLineW: number,
+  greyscale?: boolean, bgColor?: string, customCmapLow?: string, customCmapHigh?: string,
 ) {
   const cfg = LAT[latType];
   const n = atoms.length / 3;
@@ -491,7 +508,7 @@ export function renderTip3D(
   const totalExtent = Math.max(apexR * 2, apexR * (1 + shankLenMul)) * 1.3;
   const fov = Math.min(W, H) * zoom / totalExtent;
 
-  ctx.fillStyle = '#060a12';
+  ctx.fillStyle = bgColor || '#060a12';
   ctx.fillRect(0, 0, W, H);
 
   let Emin = 1e9, Emax = -1e9;
@@ -557,7 +574,12 @@ export function renderTip3D(
     }
 
     const t = (a.El - Emin) / Erange;
-    const [cr, cg, cb] = getColor(t, colormap);
+    let [cr, cg, cb] = getColor(t, colormap, customCmapLow, customCmapHigh);
+    // Apply greyscale filter
+    if (greyscale) {
+      const grey = Math.round(0.299*cr + 0.587*cg + 0.114*cb);
+      cr = cg = cb = grey;
+    }
     const lr = Math.round(cr * a.light);
     const lg = Math.round(cg * a.light);
     const lb = Math.round(cb * a.light);
@@ -594,6 +616,11 @@ export function renderMicrograph(
   atoms: Float64Array, coords: Int32Array, fields: Float64Array,
   latType: string, apexR: number, projN: number, apertureDeg: number,
   brightness: number, contrast: number, spotScale: number,
+  spotSoftness?: number, fieldThreshold?: number, negativeImage?: boolean,
+  phosphorColor?: 'green' | 'blue' | 'white' | 'amber' | 'custom', phosphorCustom?: string,
+  gammaR?: number, gammaG?: number, gammaB?: number,
+  microOpacity?: number,
+  microMillerMode?: 'off' | 'main' | 'all', microMillerFont?: number, microMillerDots?: boolean,
 ) {
   const cfg = LAT[latType];
   const n = atoms.length / 3;

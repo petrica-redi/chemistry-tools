@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import * as THREE from 'three';
 import {
-  ELEMENTS, zeff, makeOrbitals, genPointCloud, getOccupiedSubs, electronConfigHTML,
+  ELEMENTS, zeff, makeOrbitals, genPointCloud, genIsosurface, getOccupiedSubs, electronConfigHTML,
   type OrbitalDef,
 } from './OrbitalPhysics';
 import Panel from '@/components/shared/Panel';
@@ -15,9 +15,10 @@ interface Props { initialZ?: number; initialElement?: string; }
 
 export default function OrbitalsViewer({ initialZ, initialElement }: Props = {}) {
   const resolvedZ = initialZ ?? (initialElement ? SYMBOL_TO_Z[initialElement] : undefined);
-  const [Z, setZ] = useState(resolvedZ && resolvedZ >= 1 && resolvedZ <= 118 ? resolvedZ : 6);
+  const [Z, setZ] = useState(resolvedZ && resolvedZ >= 1 && resolvedZ <= 118 ? resolvedZ : 1);
   const [mode, setMode] = useState<'points' | 'iso'>('points');
-  const [density, setDensity] = useState(2);
+  const [density, setDensity] = useState(3);
+  const [zoom, setZoom] = useState(8);
   const [orbitals, setOrbitals] = useState<OrbitalDef[]>(() => makeOrbitals());
   const [showAxes, setShowAxes] = useState(false);
   const [showNucleus, setShowNucleus] = useState(true);
@@ -108,7 +109,9 @@ export default function OrbitalsViewer({ initialZ, initialElement }: Props = {})
     };
     const onUp = () => { O.drag = false; };
     const onWheel = (e: WheelEvent) => {
-      O.dst = Math.max(1, Math.min(100, O.dst + e.deltaY * 0.01));
+      const newDst = Math.max(0.5, Math.min(50, O.dst + e.deltaY * 0.01));
+      O.dst = newDst;
+      setZoom(newDst);
       e.preventDefault();
     };
 
@@ -200,9 +203,15 @@ export default function OrbitalsViewer({ initialZ, initialElement }: Props = {})
   const rebuildOrbitals = useCallback(() => {
     const group = orbGroupRef.current;
     while (group.children.length > 0) {
-      const child = group.children[0] as THREE.Points;
+      const child = group.children[0] as any;
       if (child.geometry) child.geometry.dispose();
-      if ((child as any).material) (child as any).material.dispose();
+      if (child.material) {
+        if (Array.isArray(child.material)) {
+          child.material.forEach((m: any) => m.dispose());
+        } else {
+          child.material.dispose();
+        }
+      }
       group.remove(child);
     }
 
@@ -213,22 +222,41 @@ export default function OrbitalsViewer({ initialZ, initialElement }: Props = {})
     setTimeout(() => {
       for (const orb of visibleOrbs) {
         const Zeff = zeff(Z, orb.n, orb.l);
-        const pts = genPointCloud(orb.n, orb.l, orb.m, Zeff, density);
-        const geo = new THREE.BufferGeometry();
-        geo.setAttribute('position', new THREE.BufferAttribute(pts, 3));
-        const mat = new THREE.PointsMaterial({
-          color: new THREE.Color(orb.color),
-          size: 0.02,
-          transparent: true,
-          opacity: orb.opacity,
-          sizeAttenuation: true,
-          depthWrite: false,
-        });
-        group.add(new THREE.Points(geo, mat));
+
+        if (mode === 'iso') {
+          const isoData = genIsosurface(orb.n, orb.l, orb.m, Zeff, density - 1, isoProbability);
+          if (isoData.vertices.length > 0) {
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(isoData.vertices, 3));
+            geo.setAttribute('normal', new THREE.BufferAttribute(isoData.normals, 3));
+            const mat = new THREE.MeshPhysicalMaterial({
+              color: new THREE.Color(orb.color),
+              transparent: true,
+              opacity: orb.opacity,
+              roughness: 0.3,
+              metalness: 0.1,
+              envMapIntensity: 0.5,
+            });
+            group.add(new THREE.Mesh(geo, mat));
+          }
+        } else {
+          const pts = genPointCloud(orb.n, orb.l, orb.m, Zeff, density);
+          const geo = new THREE.BufferGeometry();
+          geo.setAttribute('position', new THREE.BufferAttribute(pts, 3));
+          const mat = new THREE.PointsMaterial({
+            color: new THREE.Color(orb.color),
+            size: 0.02,
+            transparent: true,
+            opacity: orb.opacity,
+            sizeAttenuation: true,
+            depthWrite: false,
+          });
+          group.add(new THREE.Points(geo, mat));
+        }
       }
       setLoading(false);
     }, 30);
-  }, [orbitals, Z, density]);
+  }, [orbitals, Z, density, mode, isoProbability]);
 
   useEffect(() => {
     rebuildOrbitals();
@@ -382,9 +410,9 @@ export default function OrbitalsViewer({ initialZ, initialElement }: Props = {})
                 {allVisible && (
                   <div className="pl-2 py-1">
                     {orbs.map((o) => (
-                      <div key={o.idx} className="flex items-center gap-2 py-1">
+                      <div key={o.idx} className="flex items-center gap-1.5 py-1">
                         <div
-                          className={`w-7 h-4 rounded-full cursor-pointer transition-colors ${
+                          className={`w-7 h-4 rounded-full cursor-pointer transition-colors flex-shrink-0 ${
                             o.visible ? 'bg-[var(--color-accent-blue)]' : 'bg-[var(--color-border)]'
                           }`}
                           onClick={(e) => { e.stopPropagation(); toggleOrbital(o.idx); }}
@@ -394,13 +422,13 @@ export default function OrbitalsViewer({ initialZ, initialElement }: Props = {})
                             style={{ marginLeft: o.visible ? '14px' : '2px' }}
                           />
                         </div>
-                        <span className="font-mono text-[11px] text-[var(--color-text-secondary)]">
+                        <span className="font-mono text-[11px] text-[var(--color-text-secondary)] min-w-[40px]">
                           {o.label}
                         </span>
                         <input
                           type="color"
                           value={o.color}
-                          className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent"
+                          className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent flex-shrink-0"
                           onChange={(e) => {
                             setOrbitals((prev) => {
                               const next = [...prev];
@@ -408,6 +436,21 @@ export default function OrbitalsViewer({ initialZ, initialElement }: Props = {})
                               return next;
                             });
                           }}
+                        />
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={Math.round(o.opacity * 100)}
+                          className="flex-1 h-1 text-[10px] rounded cursor-pointer"
+                          onChange={(e) => {
+                            setOrbitals((prev) => {
+                              const next = [...prev];
+                              next[o.idx] = { ...next[o.idx], opacity: +e.target.value / 100 };
+                              return next;
+                            });
+                          }}
+                          title={`Opacity: ${Math.round(o.opacity * 100)}%`}
                         />
                       </div>
                     ))}
@@ -425,8 +468,8 @@ export default function OrbitalsViewer({ initialZ, initialElement }: Props = {})
 
         {/* Bottom controls */}
         <div className="px-4 py-3 border-t border-[var(--color-border)] flex flex-col gap-2">
-          <SliderControl label="Zoom" value={orbitRef.current.dst} min={0.5} max={50} step={0.1} onChange={(v) => { orbitRef.current.dst = v; }} />
-          <SliderControl label="Density" value={density} min={0} max={4} step={1} onChange={setDensity} formatValue={(v) => ['Low', 'Med', 'High', 'Ultra', 'Max'][v]} />
+          <SliderControl label="Zoom" value={zoom} min={0.5} max={50} step={0.1} onChange={(v) => { setZoom(v); orbitRef.current.dst = v; }} />
+          <SliderControl label="Density / Resolution" value={density} min={1} max={5} step={1} onChange={setDensity} formatValue={(v) => String(v)} />
           {mode === 'iso' && (
             <SliderControl label="Probability" value={isoProbability} min={50} max={99} step={1} unit="%" onChange={setIsoProbability} />
           )}
@@ -471,6 +514,7 @@ export default function OrbitalsViewer({ initialZ, initialElement }: Props = {})
               { label: '4K', w: 3840, h: 2160 },
               { label: '5K', w: 5120, h: 2880 },
               { label: '6K', w: 6144, h: 3456 },
+              { label: '7K', w: 7168, h: 4032 },
               { label: '8K', w: 7680, h: 4320 },
             ].map(({ label, w, h }) => (
               <button
@@ -496,8 +540,21 @@ export default function OrbitalsViewer({ initialZ, initialElement }: Props = {})
           </div>
         )}
         <div className="absolute top-4 left-4 font-mono text-[11px] text-[var(--color-text-muted)] pointer-events-none leading-relaxed">
-          <div>{ELEMENTS[Z]} (Z={Z})</div>
+          <div className="font-semibold text-[var(--color-text-primary)]">{ELEMENTS[Z]} (Z={Z})</div>
+          <div>Active: {orbitals.filter((o) => o.visible).length} orbital{orbitals.filter((o) => o.visible).length !== 1 ? 's' : ''}</div>
           <div>Zeff: Clementi-Raimondi / Slater</div>
+        </div>
+
+        {/* Electron config overlay - top center */}
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 font-mono text-[13px] text-[var(--color-text-primary)] pointer-events-none text-center"
+          style={{
+            textShadow: '0 1px 6px rgba(0,0,0,0.7)',
+            lineHeight: '1.8'
+          }}>
+          <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest mb-1">
+            Electron configuration
+          </div>
+          <div dangerouslySetInnerHTML={{ __html: electronConfigHTML(Z) }} />
         </div>
         {showScaleBar && (
           <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 pointer-events-none">

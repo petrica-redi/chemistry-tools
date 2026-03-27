@@ -54,6 +54,36 @@ interface FIMState {
   miller3dFont: number;
   // Self-rotation
   selfRot: number;
+  // Field evaporation
+  evapThresh: number;
+  evapMaxIter: number;
+  // Colormaps & display
+  greyscale: boolean;
+  customCmapLow: string;
+  customCmapHigh: string;
+  bgColor: string;
+  // Micrograph advanced
+  spotSoftness: number;
+  fieldThreshold: number;
+  negativeImage: boolean;
+  phosphorColor: 'green' | 'blue' | 'white' | 'amber' | 'custom';
+  phosphorCustom: string;
+  gammaR: number;
+  gammaG: number;
+  gammaB: number;
+  microOpacity: number;
+  // Micrograph Miller indices
+  microMillerMode: 'off' | 'main' | 'all';
+  microMillerFont: number;
+  microMillerDots: boolean;
+  // Projection presets
+  projPreset: 'radial' | 'fim' | 'stereo' | 'ortho' | 'custom';
+  // Ring calculator
+  ringPole: string;
+  ringsCount: number;
+  ringTheta: number;
+  // Zoom
+  zoom: number;
 }
 
 const INITIAL: FIMState = {
@@ -62,34 +92,57 @@ const INITIAL: FIMState = {
   shankDeg: 5,
   shankLenMul: 2.9,
   poleH: 0, poleK: 0, poleL: 1,
-  voltage: 5000,
-  alpha: 0.5,
-  probeHeight: 0.5,
-  fieldExp: 1.5,
-  screenDist: 500,
-  colormap: 'jet',
+  voltage: 2727,
+  alpha: 1.5,
+  probeHeight: 1.0,
+  fieldExp: 0.20,
+  screenDist: 820,
+  colormap: 'custom',
   threshold: 8,
   showDim: false,
   bulkOpacity: 100,
   bulkColor: '#000000',
-  lightAz: 45,
-  lightEl: 45,
-  ambient: 40,
+  lightAz: 30,
+  lightEl: 60,
+  ambient: 30,
   atomSize: 100,
   wulffFrac: 0,
   projN: 2.0,
   aperture: 60,
-  microBright: 1.2,
-  microContrast: 1.5,
+  microBright: 1.0,
+  microContrast: 1.0,
   spotSize: 1.0,
   showStereo: false,
-  stereoSize: 30,
+  stereoSize: 0,
   stereoFont: 7,
   showZones: true,
   zoneLineW: 0.7,
   millerMode: 'off',
   miller3dFont: 10,
   selfRot: 0,
+  evapThresh: 6,
+  evapMaxIter: 1,
+  greyscale: false,
+  customCmapLow: '#0a0a0a',
+  customCmapHigh: '#00cc00',
+  bgColor: '#08080e',
+  spotSoftness: 0.50,
+  fieldThreshold: 0.20,
+  negativeImage: false,
+  phosphorColor: 'green',
+  phosphorCustom: '#00ff44',
+  gammaR: 1.0,
+  gammaG: 1.0,
+  gammaB: 1.0,
+  microOpacity: 100,
+  microMillerMode: 'main',
+  microMillerFont: 9,
+  microMillerDots: true,
+  projPreset: 'custom',
+  ringPole: '001',
+  ringsCount: 5,
+  ringTheta: 15,
+  zoom: 1.0,
 };
 
 interface FIMSimulatorProps {
@@ -119,12 +172,17 @@ export default function FIMSimulator({
   const coordsRef = useRef<Int32Array | null>(null);
   const fieldsRef = useRef<Float64Array | null>(null);
   const viewQRef = useRef(Q.ax(1, 0.3, 0, 0.4).norm());
-  const zoomRef = useRef(1.0);
+  const zoomRef = useRef(s.zoom);
   const panRef = useRef({ x: 0, y: 0 });
   const dragRef = useRef({ active: false, px: 0, py: 0 });
   const animRef = useRef(0);
   const stateRef = useRef(s);
   stateRef.current = s;
+
+  // Update zoom ref when zoom state changes
+  useEffect(() => {
+    zoomRef.current = s.zoom;
+  }, [s.zoom]);
 
   const update = useCallback((patch: Partial<FIMState>) => {
     setS((prev) => ({ ...prev, ...patch }));
@@ -259,12 +317,18 @@ export default function FIMSimulator({
           st.millerMode, st.miller3dFont,
           st.showStereo, st.stereoSize, st.stereoFont,
           st.showZones, st.zoneLineW,
+          st.greyscale, st.bgColor, st.customCmapLow, st.customCmapHigh,
         );
       } else {
         renderMicrograph(
           ctx, W, H, atoms, coords, fields,
           mat.lat, st.apexR, st.projN, st.aperture,
           st.microBright, st.microContrast, st.spotSize,
+          st.spotSoftness, st.fieldThreshold, st.negativeImage,
+          st.phosphorColor, st.phosphorCustom,
+          st.gammaR, st.gammaG, st.gammaB,
+          st.microOpacity,
+          st.microMillerMode, st.microMillerFont, st.microMillerDots,
         );
       }
     };
@@ -378,7 +442,27 @@ export default function FIMSimulator({
           <SliderControl label="Screen distance" value={s.screenDist} min={0} max={1000} step={1} unit="" onChange={(v) => update({ screenDist: v })} />
         </Panel>
 
+        <Panel title="Field Evaporation">
+          <SliderControl label="Evaporation (coord ≤)" value={s.evapThresh} min={0} max={7} step={1} unit="" onChange={(v) => update({ evapThresh: v })} />
+          <SliderControl label="Max iterations" value={s.evapMaxIter} min={1} max={50} step={1} unit="" onChange={(v) => update({ evapMaxIter: v })} />
+          <div className="flex gap-2 mt-2">
+            <button
+              onClick={doGenerate}
+              className="flex-1 px-2 py-1 text-[10px] font-bold rounded border border-[var(--color-accent-cyan)] text-[var(--color-accent-cyan)] hover:bg-[var(--color-accent-cyan)]/10 transition-all"
+            >
+              +1 Iteration
+            </button>
+            <button
+              onClick={() => doGenerate()}
+              className="flex-1 px-2 py-1 text-[10px] font-bold rounded border border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-border)] transition-all"
+            >
+              Reset
+            </button>
+          </div>
+        </Panel>
+
         <Panel title="View & Rotation">
+          <SliderControl label="Zoom" value={s.zoom} min={0.1} max={10} step={0.1} unit="×" onChange={(v) => update({ zoom: v })} />
           <SliderControl label="Self-rotation" value={s.selfRot} min={-180} max={180} step={1} unit="°" onChange={(v) => update({ selfRot: v })} />
           <SelectControl
             label="Miller indices"
@@ -414,18 +498,48 @@ export default function FIMSimulator({
             label="Colormap"
             value={s.colormap}
             options={[
-              { label: 'Jet', value: 'jet' },
+              { label: 'Surface Charge (Jet)', value: 'jet' },
+              { label: 'FIM Green', value: 'green' },
+              { label: 'Hot', value: 'hot' },
               { label: 'Viridis', value: 'viridis' },
               { label: 'Plasma', value: 'plasma' },
               { label: 'Inferno', value: 'inferno' },
-              { label: 'Hot', value: 'hot' },
-              { label: 'Green', value: 'green' },
               { label: 'Cool-Warm', value: 'coolwarm' },
               { label: 'Turbo', value: 'turbo' },
+              { label: 'Cividis', value: 'cividis' },
+              { label: 'Custom (pick colors)', value: 'custom' },
             ]}
             onChange={(v) => update({ colormap: v as ColormapName })}
           />
-          <SliderControl label="Atom size" value={s.atomSize} min={20} max={200} step={5} unit="%" onChange={(v) => update({ atomSize: v })} />
+          {s.colormap === 'custom' && (
+            <div className="flex gap-2 items-center">
+              <label className="text-[10px] text-[var(--color-text-muted)]">Low:</label>
+              <input
+                type="color"
+                value={s.customCmapLow}
+                onChange={(e) => update({ customCmapLow: e.target.value })}
+                className="w-10 h-8 rounded cursor-pointer"
+              />
+              <label className="text-[10px] text-[var(--color-text-muted)]">High:</label>
+              <input
+                type="color"
+                value={s.customCmapHigh}
+                onChange={(e) => update({ customCmapHigh: e.target.value })}
+                className="w-10 h-8 rounded cursor-pointer"
+              />
+            </div>
+          )}
+          <ToggleSwitch label="Greyscale" checked={s.greyscale} onChange={(v) => update({ greyscale: v })} />
+          <div className="flex gap-2 items-center">
+            <label className="text-[10px] text-[var(--color-text-muted)]">3D Background:</label>
+            <input
+              type="color"
+              value={s.bgColor}
+              onChange={(e) => update({ bgColor: e.target.value })}
+              className="w-10 h-8 rounded cursor-pointer"
+            />
+          </div>
+          <SliderControl label="Atom size" value={s.atomSize} min={1} max={150} step={1} unit="%" onChange={(v) => update({ atomSize: v })} />
           <ToggleSwitch label="Show bulk atoms" checked={s.showDim} onChange={(v) => update({ showDim: v })} />
           {s.showDim && (
             <>
@@ -441,22 +555,166 @@ export default function FIMSimulator({
               </div>
             </>
           )}
-          <SliderControl label="Light azimuth" value={s.lightAz} min={0} max={360} step={5} unit="°" onChange={(v) => update({ lightAz: v })} />
+          <SliderControl label="Light azimuth" value={s.lightAz} min={-180} max={180} step={5} unit="°" onChange={(v) => update({ lightAz: v })} />
           <SliderControl label="Light elevation" value={s.lightEl} min={0} max={90} step={5} unit="°" onChange={(v) => update({ lightEl: v })} />
-          <SliderControl label="Ambient" value={s.ambient} min={0} max={100} step={5} unit="%" onChange={(v) => update({ ambient: v })} />
+          <SliderControl label="Ambient" value={s.ambient} min={5} max={80} step={1} unit="%" onChange={(v) => update({ ambient: v })} />
         </Panel>
 
         {tab === 'micro' && (
-          <Panel title="Micrograph">
-            <SliderControl label="Projection n" value={s.projN} min={1} max={4} step={0.05} unit="" onChange={(v) => update({ projN: v })} />
-            <SliderControl label="Aperture" value={s.aperture} min={20} max={90} step={1} unit="°" onChange={(v) => update({ aperture: v })} />
-            <SliderControl label="Brightness" value={s.microBright} min={0.1} max={3} step={0.1} unit="" onChange={(v) => update({ microBright: v })} />
-            <SliderControl label="Contrast" value={s.microContrast} min={0.5} max={4} step={0.1} unit="" onChange={(v) => update({ microContrast: v })} />
-            <SliderControl label="Spot size" value={s.spotSize} min={0.3} max={3} step={0.1} unit="" onChange={(v) => update({ spotSize: v })} />
-            <div className="text-[10px] text-[var(--color-text-muted)] mt-1 bg-[var(--color-bg-tertiary)] p-2 rounded border-l-2 border-[var(--color-accent-green)]">
-              n=1: radial | n≈1.65: typical FIM | n=2: stereographic
-            </div>
-          </Panel>
+          <>
+            <Panel title="Projection">
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                {[
+                  { label: 'Radial', preset: 'radial' as const, n: 1 },
+                  { label: 'FIM', preset: 'fim' as const, n: 1.65 },
+                  { label: 'Stereo', preset: 'stereo' as const, n: 2 },
+                  { label: 'Ortho', preset: 'ortho' as const, n: Infinity },
+                ].map(({ label, preset, n }) => (
+                  <button
+                    key={preset}
+                    onClick={() => update({ projPreset: preset, projN: n === Infinity ? 4 : n })}
+                    className={`text-[10px] font-mono py-1 rounded border transition-all ${
+                      s.projPreset === preset
+                        ? 'border-[var(--color-accent-cyan)] text-[var(--color-accent-cyan)] bg-[var(--color-accent-cyan)]/10'
+                        : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-accent-cyan)]'
+                    }`}
+                  >
+                    n={n === Infinity ? '∞' : n.toFixed(2)}
+                  </button>
+                ))}
+              </div>
+              <SliderControl label="Projection n" value={s.projN} min={1} max={4} step={0.05} unit="" onChange={(v) => update({ projN: v, projPreset: 'custom' })} />
+              <SliderControl label="Aperture" value={s.aperture} min={20} max={90} step={1} unit="°" onChange={(v) => update({ aperture: v })} />
+            </Panel>
+
+            <Panel title="Micrograph Display">
+              <SliderControl label="Spot softness" value={s.spotSoftness} min={0.05} max={1} step={0.05} unit="" onChange={(v) => update({ spotSoftness: v })} />
+              <SliderControl label="Field threshold" value={s.fieldThreshold} min={0} max={0.95} step={0.01} unit="" onChange={(v) => update({ fieldThreshold: v })} />
+              <ToggleSwitch label="Negative image" checked={s.negativeImage} onChange={(v) => update({ negativeImage: v })} />
+              <SelectControl
+                label="Phosphor color"
+                value={s.phosphorColor}
+                options={[
+                  { label: 'Green (P43)', value: 'green' },
+                  { label: 'Blue (P47)', value: 'blue' },
+                  { label: 'White', value: 'white' },
+                  { label: 'Amber (P12)', value: 'amber' },
+                  { label: 'Custom', value: 'custom' },
+                ]}
+                onChange={(v) => update({ phosphorColor: v as 'green' | 'blue' | 'white' | 'amber' | 'custom' })}
+              />
+              {s.phosphorColor === 'custom' && (
+                <div className="flex gap-2 items-center">
+                  <label className="text-[10px] text-[var(--color-text-muted)]">Color:</label>
+                  <input
+                    type="color"
+                    value={s.phosphorCustom}
+                    onChange={(e) => update({ phosphorCustom: e.target.value })}
+                    className="w-10 h-8 rounded cursor-pointer"
+                  />
+                </div>
+              )}
+              <SliderControl label="Brightness" value={s.microBright} min={0.1} max={5.0} step={0.1} unit="" onChange={(v) => update({ microBright: v })} />
+              <SliderControl label="Contrast" value={s.microContrast} min={0.1} max={5.0} step={0.1} unit="" onChange={(v) => update({ microContrast: v })} />
+              <SliderControl label="Spot size" value={s.spotSize} min={0.2} max={5.0} step={0.1} unit="" onChange={(v) => update({ spotSize: v })} />
+              <SliderControl label="Opacity" value={s.microOpacity} min={5} max={100} step={1} unit="%" onChange={(v) => update({ microOpacity: v })} />
+            </Panel>
+
+            <Panel title="Gamma Curves">
+              <div className="space-y-2">
+                <SliderControl label="R gamma" value={s.gammaR} min={0.1} max={4} step={0.05} unit="" onChange={(v) => update({ gammaR: v })} />
+                <SliderControl label="G gamma" value={s.gammaG} min={0.1} max={4} step={0.05} unit="" onChange={(v) => update({ gammaG: v })} />
+                <SliderControl label="B gamma" value={s.gammaB} min={0.1} max={4} step={0.05} unit="" onChange={(v) => update({ gammaB: v })} />
+              </div>
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                {[
+                  { label: 'Linear', r: 1, g: 1, b: 1 },
+                  { label: 'Bright', r: 0.6, g: 0.6, b: 0.6 },
+                  { label: 'Dark', r: 1.8, g: 1.8, b: 1.8 },
+                  { label: 'Cool', r: 1.2, g: 0.7, b: 1.5 },
+                  { label: 'Warm', r: 0.7, g: 1.0, b: 1.8 },
+                ].map(({ label, r, g, b }) => (
+                  <button
+                    key={label}
+                    onClick={() => update({ gammaR: r, gammaG: g, gammaB: b })}
+                    className="text-[9px] py-1 rounded border border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-border)] transition-all"
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </Panel>
+
+            <Panel title="Miller Indices on Micrograph">
+              <SelectControl
+                label="Mode"
+                value={s.microMillerMode}
+                options={[
+                  { label: 'Off', value: 'off' },
+                  { label: 'Main poles', value: 'main' },
+                  { label: 'All poles', value: 'all' },
+                ]}
+                onChange={(v) => update({ microMillerMode: v as 'off' | 'main' | 'all' })}
+              />
+              {s.microMillerMode !== 'off' && (
+                <>
+                  <SliderControl label="Font size" value={s.microMillerFont} min={5} max={20} step={1} unit=" px" onChange={(v) => update({ microMillerFont: v })} />
+                  <ToggleSwitch label="Pole dots" checked={s.microMillerDots} onChange={(v) => update({ microMillerDots: v })} />
+                </>
+              )}
+            </Panel>
+
+            <Panel title="Ring Calculator">
+              <SelectControl
+                label="Pole (hkl)"
+                value={s.ringPole}
+                options={[
+                  { label: '(001)/(0001)', value: '001' },
+                  { label: '(011)', value: '011' },
+                  { label: '(111)', value: '111' },
+                  { label: '(112)', value: '112' },
+                  { label: '(113)', value: '113' },
+                  { label: '(012)', value: '012' },
+                  { label: '(100)', value: '100' },
+                  { label: '(110)', value: '110' },
+                  { label: '(101)', value: '101' },
+                  { label: '(102)', value: '102' },
+                ]}
+                onChange={(v) => update({ ringPole: v })}
+              />
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label className="text-[10px] text-[var(--color-text-muted)] block mb-1">Rings counted</label>
+                  <input
+                    type="number"
+                    value={s.ringsCount}
+                    onChange={(e) => update({ ringsCount: Math.max(1, parseInt(e.target.value) || 1) })}
+                    min={1}
+                    max={20}
+                    className="w-full px-2 py-1 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded text-[10px] text-[var(--color-text-primary)]"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="text-[10px] text-[var(--color-text-muted)] block mb-1">θ half-angle (°)</label>
+                  <input
+                    type="number"
+                    value={s.ringTheta}
+                    onChange={(e) => update({ ringTheta: Math.max(0, parseFloat(e.target.value) || 0) })}
+                    min={0}
+                    max={90}
+                    step={0.5}
+                    className="w-full px-2 py-1 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded text-[10px] text-[var(--color-text-primary)]"
+                  />
+                </div>
+              </div>
+              <button className="w-full mt-2 px-2 py-1 text-[10px] font-bold rounded border border-[var(--color-accent-green)] text-[var(--color-accent-green)] hover:bg-[var(--color-accent-green)]/10 transition-all">
+                Calculate R from rings
+              </button>
+              <div className="text-[9px] text-[var(--color-text-muted)] mt-2 bg-[var(--color-bg-tertiary)] p-2 rounded">
+                Result: R = {(s.ringsCount / (2 * Math.sin(s.ringTheta * Math.PI / 180))).toFixed(2)} nm
+              </div>
+            </Panel>
+          </>
         )}
 
         <button
@@ -466,6 +724,58 @@ export default function FIMSimulator({
         >
           {generating ? 'Generating...' : 'Regenerate Tip'}
         </button>
+
+        <Panel title="Export Image">
+          <SelectControl
+            label="Resolution"
+            value="2048"
+            options={[
+              { label: '2K (2048)', value: '2048' },
+              { label: '3K (3072)', value: '3072' },
+              { label: '4K (4096)', value: '4096' },
+              { label: '5K (5120)', value: '5120' },
+              { label: '8K (8192)', value: '8192' },
+            ]}
+            onChange={() => {}}
+          />
+          <button className="w-full mt-2 px-3 py-2 text-[11px] font-bold rounded bg-[var(--color-accent-cyan)] text-white hover:bg-[var(--color-accent-cyan)]/80 transition-all">
+            Export PNG
+          </button>
+        </Panel>
+
+        <Panel title="Selected Atom(s)">
+          <div className="text-[9px] text-[var(--color-text-muted)] mb-2 bg-[var(--color-bg-tertiary)] p-2 rounded">
+            Click: select • Shift+click: multi-select
+          </div>
+          <div className="flex gap-2">
+            <button className="flex-1 px-2 py-1 text-[10px] font-bold rounded border border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-border)] transition-all">
+              Delete
+            </button>
+            <button className="flex-1 px-2 py-1 text-[10px] font-bold rounded border border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-border)] transition-all">
+              Add here
+            </button>
+            <button className="flex-1 px-2 py-1 text-[10px] font-bold rounded border border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-border)] transition-all">
+              Clear
+            </button>
+          </div>
+        </Panel>
+
+        <Panel title="Model Info">
+          <div className="text-[8px] text-[var(--color-text-muted)] space-y-2 bg-[var(--color-bg-tertiary)] p-2 rounded">
+            <div>
+              <span className="text-[var(--color-text-primary)] font-bold">Geometry:</span> Sphere cap + cone + Wulff faceting
+            </div>
+            <div>
+              <span className="text-[var(--color-text-primary)] font-bold">Field model:</span> E_pos and image charge effects
+            </div>
+            <div className="border-t border-[var(--color-border)] pt-2 mt-2">
+              <span className="text-[var(--color-accent-cyan)]">References:</span>
+              <div>Katnagallu et al. J.Phys.D (2018)</div>
+              <div>Klaes et al. Comp.Phys.Comm. (2021)</div>
+              <div>Wulff, Z.Kristallogr. (1901)</div>
+            </div>
+          </div>
+        </Panel>
 
         <RelatedTools
           toolId="fim"
@@ -500,7 +810,8 @@ export default function FIMSimulator({
           <div className="absolute top-3 right-3 bg-[var(--color-bg-primary)]/80 px-3 py-2 rounded-lg font-mono text-[11px] text-[var(--color-text-secondary)]">
             <div>Atoms: <span className="text-[var(--color-text-primary)] font-bold">{stats.atoms.toLocaleString()}</span></div>
             <div>Surface: <span className="text-[var(--color-accent-cyan)] font-bold">{stats.surface.toLocaleString()}</span></div>
-            <div>R = {s.apexR} d<sub>nn</sub> = {(s.apexR * dnn / 10).toFixed(1)} nm</div>
+            <div>R tip: {(s.apexR * dnn / 10).toFixed(1)} nm</div>
+            <div>E max: {((s.voltage / (s.apexR * dnn / 10)) * 0.1).toFixed(1)} V/nm</div>
             <div>Pole: ({s.poleH} {s.poleK} {s.poleL})</div>
           </div>
         </div>
