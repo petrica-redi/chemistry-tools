@@ -1,5 +1,6 @@
 'use client';
 import dynamic from 'next/dynamic';
+import ToolPageHeader from '@/components/shared/ToolPageHeader';
 
 const FIMSimulator = dynamic(() => import('./FIMSimulator'), { ssr: false });
 
@@ -11,5 +12,10 @@ interface Props {
 }
 
 export default function FIMWrapper(props: Props) {
-  return <FIMSimulator {...props} />;
+  return (
+    <>
+      <ToolPageHeader toolId="fim" />
+      <FIMSimulator {...props} />
+    </>
+  );
 }
